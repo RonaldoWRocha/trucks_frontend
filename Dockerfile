@@ -23,12 +23,7 @@ COPY package.json package-lock.json ./
 RUN npm ci --production
 
 COPY --from=builder /usr/src/app/.next .next
-COPY --from=builder /usr/src/app/public ./public
 COPY --from=builder /usr/src/app/next.config.mjs ./next.config.mjs
-COPY --from=builder /usr/src/app/app ./app
-COPY --from=builder /usr/src/app/src ./src
-COPY --from=builder /usr/src/app/styles.css ./styles.css
-COPY --from=builder /usr/src/app/tweaks-panel.jsx ./tweaks-panel.jsx
 
 # Expose Next.js default port
 EXPOSE 3000
