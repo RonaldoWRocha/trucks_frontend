@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:3333";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
 
 export { API_BASE };
 
@@ -70,7 +70,8 @@ export function useTelemetryData() {
 }
 
 async function getJson(path) {
-  const response = await fetch(`${API_BASE}${path}`, { cache: "no-store" });
+  const url = API_BASE ? `${API_BASE}${path}` : path;
+  const response = await fetch(url, { cache: "no-store" });
   if (!response.ok) {
     throw new Error(`${path}: HTTP ${response.status}`);
   }
