@@ -1,12 +1,13 @@
 /** @type {import('next').NextConfig} */
+const API_HOST =
+  process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || "http://host.docker.internal:80";
+
 const nextConfig = {
   async rewrites() {
     return [
       {
         source: "/api/:path*",
-        destination: process.env.NEXT_PUBLIC_API_URL
-          ? `${process.env.NEXT_PUBLIC_API_URL}/api/:path*`
-          : "http://127.0.0.1:80/api/:path*",
+        destination: `${API_HOST}/api/:path*`,
       },
     ];
   },
