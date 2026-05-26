@@ -4,6 +4,10 @@ FROM node:20-alpine AS builder
 # Set working directory
 WORKDIR /usr/src/app
 
+# Allow passing API URL at build time so `NEXT_PUBLIC_API_URL` is embedded in the client
+ARG NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+
 # Install dependencies
 COPY package.json package-lock.json ./
 RUN npm ci
