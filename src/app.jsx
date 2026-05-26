@@ -189,10 +189,10 @@ const App = () => {
         </div>
 
         <div className="sidebar-footer">
-          <div className="avatar">JM</div>
+          <div className="avatar">N</div>
           <div className="who">
-            <div className="who-name">Juliana Martins</div>
-            <div className="who-org">Norte Logística</div>
+            <div className="who-name">Norte Telemetria</div>
+            <div className="who-org">Gestão de frota</div>
           </div>
         </div>
       </aside>
