@@ -8,6 +8,10 @@ WORKDIR /usr/src/app
 ARG NEXT_PUBLIC_API_URL
 ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
 
+# Create a .env file so Next.js reads `NEXT_PUBLIC_API_URL` at build time
+# This makes the project rely only on a `.env` file as requested
+RUN echo "NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}" > .env
+
 # Install dependencies
 COPY package.json package-lock.json ./
 RUN npm ci
