@@ -445,7 +445,7 @@ const CredentialsModal = ({ token, onSaved }) => {
       });
       onSaved(status);
     } catch (e) {
-      setError("Nao foi possivel salvar. Confira a chave APP_ENCRYPTION_KEY e tente novamente.");
+      setError(e instanceof Error ? e.message : "Não foi possível salvar as credenciais.");
     } finally {
       setSaving(false);
     }
@@ -778,7 +778,7 @@ const TrucksCredentialsSettings = ({ token, credential, onBack, onSaved }) => {
       setForm((current) => ({ ...current, password: "" }));
       setMessage("Credenciais salvas.");
     } catch (e) {
-      setError("Não foi possível salvar as credenciais.");
+      setError(e instanceof Error ? e.message : "Não foi possível salvar as credenciais.");
     } finally {
       setSaving(false);
     }
