@@ -54,7 +54,7 @@ const App = () => {
     }
   });
   const [credentialStatus, setCredentialStatus] = useState({ loading: false, configured: true, credential: null });
-  const { data: D, loading, error } = useTelemetryData(auth.token);
+  const { data: D, loading, error } = useTelemetryData(auth.token, auth.session?.client?.id);
   const [route, setRouteState] = useState(readRoute());
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
     try { return localStorage.getItem("nt:sidebar") === "collapsed"; } catch (e) { return false; }
@@ -170,15 +170,19 @@ const App = () => {
   };
 
   const switchClient = async (clientId) => {
-    const next = await apiJson("/api/auth/switch-client", {
-      method: "POST",
-      token: auth.token,
-      body: { clientId: Number(clientId) },
-    });
-    setAuth((current) => ({
-      ...current,
-      session: { user: next.user, client: next.client, clients: next.clients },
-    }));
+    try {
+      const next = await apiJson("/api/auth/switch-client", {
+        method: "POST",
+        token: auth.token,
+        body: { clientId: Number(clientId) },
+      });
+      setAuth((current) => ({
+        ...current,
+        session: { user: next.user, client: next.client, clients: next.clients },
+      }));
+    } catch (e) {
+      console.error(e);
+    }
   };
 
   const logout = async () => {
