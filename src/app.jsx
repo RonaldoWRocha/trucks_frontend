@@ -240,6 +240,7 @@ const App = () => {
           token={auth.token}
           credentialStatus={credentialStatus}
           onCredentialsSaved={(status) => setCredentialStatus({ loading: false, ...status })}
+          isPlatformAdmin={Boolean(auth.session?.user?.isPlatformAdmin)}
         />
       );
       break;
@@ -472,7 +473,7 @@ const CredentialsModal = ({ token, onSaved }) => {
 };
 
 // Settings — with theme + density switchers
-const SettingsScreen = ({ theme, setTheme, density, setDensity, token, credentialStatus, onCredentialsSaved }) => {
+const SettingsScreen = ({ theme, setTheme, density, setDensity, token, credentialStatus, onCredentialsSaved, isPlatformAdmin }) => {
   const [settingsView, setSettingsView] = useState("home");
   const themeOptions = [
     {
@@ -562,11 +563,11 @@ const SettingsScreen = ({ theme, setTheme, density, setDensity, token, credentia
     );
   }
 
-  if (settingsView === "clients") {
+  if (settingsView === "clients" && isPlatformAdmin) {
     return <ClientsSettings token={token} onBack={() => setSettingsView("home")}/>;
   }
 
-  if (settingsView === "users") {
+  if (settingsView === "users" && isPlatformAdmin) {
     return <UsersSettings token={token} onBack={() => setSettingsView("home")}/>;
   }
 
@@ -697,8 +698,12 @@ const SettingsScreen = ({ theme, setTheme, density, setDensity, token, credentia
       <div className="section-head"><h2>Outras configurações</h2></div>
       <div className="grid cols-3">
         {[
-          { t: "Clientes", d: "Criar acesso e schema do cliente", i: "user", onClick: () => setSettingsView("clients") },
-          { t: "Usuários e permissões", d: "Criar acessos para ambientes", i: "user", onClick: () => setSettingsView("users") },
+          ...(isPlatformAdmin
+            ? [
+                { t: "Clientes", d: "Criar acesso e schema do cliente", i: "user", onClick: () => setSettingsView("clients") },
+                { t: "Usuários e permissões", d: "Criar acessos para ambientes", i: "user", onClick: () => setSettingsView("users") },
+              ]
+            : []),
           { t: "Perfis de alerta", d: "Velocidade · RPM · Cerca virtual · Sirene", i: "bell" },
           {
             t: "Integração Trucks",
