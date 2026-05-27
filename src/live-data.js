@@ -134,7 +134,7 @@ function mapVehicle(v) {
     chassis: v.chassis || "-",
     equip: v.equip || "Nao informado",
     status: String(v.status || deriveStatusFromMessageMin(lastMessageMin)),
-    ignition: Number(v.speed || 0) > 0 || Number(v.rpm || 0) > 0,
+    ignition: parseBool(v.ignition, Number(v.speed || 0) > 0 || Number(v.rpm || 0) > 0),
     speed: Number(v.speed || 0),
     rpm: Number(v.rpm || 0),
     lat: finiteNumber(v.lat),
@@ -280,4 +280,15 @@ function round(value, digits = 0) {
 function finiteNumber(value) {
   const number = Number(value);
   return Number.isFinite(number) ? number : undefined;
+}
+
+function parseBool(value, fallback = false) {
+  if (typeof value === "boolean") return value;
+  if (typeof value === "number") return value !== 0;
+  if (typeof value === "string") {
+    const normalized = value.trim().toLowerCase();
+    if (["true", "1", "sim", "s", "ligada", "ligado", "on"].includes(normalized)) return true;
+    if (["false", "0", "nao", "não", "n", "desligada", "desligado", "off"].includes(normalized)) return false;
+  }
+  return fallback;
 }
