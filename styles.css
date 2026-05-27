@@ -1107,6 +1107,122 @@ tr.row-ok td:first-child { box-shadow: inset 3px 0 0 var(--ok); }
 .log .ok { color: var(--ok); }
 .log .ts { color: var(--text-3); }
 
+.auth-shell {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  background: var(--bg);
+  padding: 24px;
+}
+.auth-panel,
+.modal-card {
+  width: min(420px, 100%);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: var(--shadow-lg);
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.auth-panel h1 {
+  margin: 0 0 4px;
+  font-size: 24px;
+  letter-spacing: 0;
+}
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-2);
+}
+.form-field input {
+  height: 38px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface-2);
+  color: var(--text);
+  padding: 0 10px;
+  font: inherit;
+}
+.form-select,
+.topbar-select {
+  height: 38px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface-2);
+  color: var(--text);
+  padding: 0 10px;
+  font: inherit;
+}
+.topbar-select {
+  width: 190px;
+  height: 30px;
+  margin-right: 10px;
+  font-size: 12px;
+}
+.form-field input:focus {
+  outline: 2px solid var(--accent-border);
+  border-color: var(--brand-blue);
+}
+.form-error {
+  font-size: 12px;
+  color: var(--crit);
+  background: color-mix(in oklab, var(--crit) 9%, transparent);
+  border: 1px solid color-mix(in oklab, var(--crit) 24%, transparent);
+  border-radius: 6px;
+  padding: 8px 10px;
+}
+.form-success {
+  font-size: 12px;
+  color: var(--ok);
+  background: color-mix(in oklab, var(--ok) 9%, transparent);
+  border: 1px solid color-mix(in oklab, var(--ok) 24%, transparent);
+  border-radius: 6px;
+  padding: 8px 10px;
+}
+.settings-card-button {
+  appearance: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.settings-card-button:hover {
+  border-color: var(--border-strong);
+  background: var(--hover);
+}
+.settings-form {
+  max-width: 560px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.check-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 38px;
+  color: var(--text-2);
+  font-size: 12px;
+}
+.check-field input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--brand-blue);
+}
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: rgba(0, 0, 0, 0.45);
+  display: grid;
+  place-items: center;
+  padding: 18px;
+}
+
 /* Tweaks panel scoped tweaks (in case starter doesn't include them) */
 .tweaks-panel { font-family: var(--font-sans); }
 

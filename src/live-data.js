@@ -22,7 +22,7 @@ export const EMPTY_DATA = {
   vehicleRoute: () => [],
 };
 
-export function useTelemetryData() {
+export function useTelemetryData(token) {
   const [state, setState] = useState({
     data: EMPTY_DATA,
     loading: true,
@@ -33,13 +33,17 @@ export function useTelemetryData() {
     let cancelled = false;
 
     async function load() {
+      if (!token) {
+        setState({ data: EMPTY_DATA, loading: false, error: null });
+        return;
+      }
       try {
         const [vehicles, alerts, dashboard, integration, reportSummary] = await Promise.all([
-          getJson("/api/vehicles?limit=500"),
-          getJson("/api/alerts?period=30d&limit=500"),
-          getJson("/api/dashboard"),
-          getJson("/api/integration"),
-          getJson("/api/reports/summary"),
+          getJson("/api/vehicles?limit=500", token),
+          getJson("/api/alerts?period=30d&limit=500", token),
+          getJson("/api/dashboard", token),
+          getJson("/api/integration", token),
+          getJson("/api/reports/summary", token),
         ]);
 
         if (cancelled) return;
@@ -64,18 +68,32 @@ export function useTelemetryData() {
       cancelled = true;
       window.clearInterval(id);
     };
-  }, []);
+  }, [token]);
 
   return useMemo(() => state, [state]);
 }
 
-async function getJson(path) {
+export async function apiJson(path, options = {}) {
   const url = API_BASE ? `${API_BASE}${path}` : path;
-  const response = await fetch(url, { cache: "no-store" });
+  const headers = {
+    ...(options.body ? { "Content-Type": "application/json" } : {}),
+    ...(options.token ? { Authorization: `Bearer ${options.token}` } : {}),
+    ...(options.headers || {}),
+  };
+  const response = await fetch(url, {
+    cache: "no-store",
+    method: options.method || "GET",
+    headers,
+    body: options.body ? JSON.stringify(options.body) : undefined,
+  });
   if (!response.ok) {
     throw new Error(`${path}: HTTP ${response.status}`);
   }
   return response.json();
+}
+
+async function getJson(path, token) {
+  return apiJson(path, { token });
 }
 
 function buildData({ vehicles, alerts, dashboard, integration, reportSummary }) {

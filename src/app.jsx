@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useTelemetryData } from "./live-data";
+import { apiJson, useTelemetryData } from "./live-data";
 import { Alerts } from "./screens/alerts";
 import { Dashboard } from "./screens/dashboard";
 import { Integration } from "./screens/integration";
@@ -45,7 +45,16 @@ function setRoute(r) {
 }
 
 const App = () => {
-  const { data: D, loading, error } = useTelemetryData();
+  const [auth, setAuth] = useState(() => {
+    if (typeof window === "undefined") return { loading: true, token: "", session: null, needsSetup: false };
+    try {
+      return { loading: true, token: localStorage.getItem("nt:token") || "", session: null, needsSetup: false };
+    } catch (e) {
+      return { loading: true, token: "", session: null, needsSetup: false };
+    }
+  });
+  const [credentialStatus, setCredentialStatus] = useState({ loading: false, configured: true, credential: null });
+  const { data: D, loading, error } = useTelemetryData(auth.token);
   const [route, setRouteState] = useState(readRoute());
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
     try { return localStorage.getItem("nt:sidebar") === "collapsed"; } catch (e) { return false; }
@@ -89,6 +98,50 @@ const App = () => {
     return undefined;
   }, [theme, density]);
 
+  useEffect(() => {
+    let cancelled = false;
+    async function boot() {
+      try {
+        const bootstrap = await apiJson("/api/auth/bootstrap");
+        if (cancelled) return;
+        if (bootstrap.needsSetup) {
+          setAuth((current) => ({ ...current, loading: false, needsSetup: true, session: null }));
+          return;
+        }
+        if (!auth.token) {
+          setAuth((current) => ({ ...current, loading: false, needsSetup: false, session: null }));
+          return;
+        }
+        const session = await apiJson("/api/auth/me", { token: auth.token });
+        if (!cancelled) {
+          setAuth((current) => ({ ...current, loading: false, needsSetup: false, session }));
+        }
+      } catch (e) {
+        if (cancelled) return;
+        try { localStorage.removeItem("nt:token"); } catch (err) {}
+        setAuth({ loading: false, token: "", session: null, needsSetup: false });
+      }
+    }
+    boot();
+    return () => { cancelled = true; };
+  }, [auth.token]);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function loadCredentials() {
+      if (!auth.token || !auth.session) return;
+      setCredentialStatus((current) => ({ ...current, loading: true }));
+      try {
+        const status = await apiJson("/api/integration/credentials", { token: auth.token });
+        if (!cancelled) setCredentialStatus({ loading: false, ...status });
+      } catch (e) {
+        if (!cancelled) setCredentialStatus({ loading: false, configured: true, credential: null });
+      }
+    }
+    loadCredentials();
+    return () => { cancelled = true; };
+  }, [auth.token, auth.session]);
+
   const go = (screen, extra = {}) => {
     const { params, ...rest } = extra;
     setRoute({ screen, params, ...rest });
@@ -110,6 +163,44 @@ const App = () => {
     const next = theme === "auto" ? "light" : theme === "light" ? "dark" : "auto";
     persistTheme(next);
   };
+
+  const onAuthSuccess = (result) => {
+    try { localStorage.setItem("nt:token", result.token); } catch (e) {}
+    setAuth({ loading: false, token: result.token, session: { user: result.user, client: result.client, clients: result.clients }, needsSetup: false });
+  };
+
+  const switchClient = async (clientId) => {
+    const next = await apiJson("/api/auth/switch-client", {
+      method: "POST",
+      token: auth.token,
+      body: { clientId: Number(clientId) },
+    });
+    setAuth((current) => ({
+      ...current,
+      session: { user: next.user, client: next.client, clients: next.clients },
+    }));
+  };
+
+  const logout = async () => {
+    try { await apiJson("/api/auth/logout", { method: "POST", token: auth.token }); } catch (e) {}
+    try { localStorage.removeItem("nt:token"); } catch (e) {}
+    setAuth({ loading: false, token: "", session: null, needsSetup: false });
+  };
+
+  if (auth.loading) {
+    return (
+      <div className="auth-shell">
+        <div className="auth-panel">
+          <h1>Norte Telemetria</h1>
+          <div className="sub">Carregando acesso...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!auth.session) {
+    return <LoginScreen needsSetup={auth.needsSetup} onSuccess={onAuthSuccess}/>;
+  }
 
   const activeNav = NAV.find(n => n.id === route.screen) || NAV.find(n => n.id === "vehicles");
   const onlineCount = D.FLEET.filter(v => v.status === "online").length;
@@ -140,7 +231,17 @@ const App = () => {
       body = <Integration data={D}/>;
       break;
     case "settings":
-      body = <SettingsScreen theme={theme} setTheme={persistTheme} density={density} setDensity={persistDensity}/>;
+      body = (
+        <SettingsScreen
+          theme={theme}
+          setTheme={persistTheme}
+          density={density}
+          setDensity={persistDensity}
+          token={auth.token}
+          credentialStatus={credentialStatus}
+          onCredentialsSaved={(status) => setCredentialStatus({ loading: false, ...status })}
+        />
+      );
       break;
     default:
       body = <Dashboard data={D} onGoToVehicle={goVehicle} onNavigate={onNavigate}/>;
@@ -222,8 +323,25 @@ const App = () => {
 
           <div className="topbar-spacer"/>
 
+          {auth.session?.user?.isPlatformAdmin && Array.isArray(auth.session?.clients) && (
+            <select
+              className="topbar-select"
+              value={auth.session.client.id}
+              onChange={(event) => switchClient(event.target.value)}
+              title="Ambiente"
+            >
+              {auth.session.clients.map((client) => (
+                <option key={client.id} value={client.id}>{client.name}</option>
+              ))}
+            </select>
+          )}
+
           <button className="btn ghost sm" style={{ marginRight: 10 }} onClick={cycleTheme} title="Alternar tema">
             Tema: {theme === "auto" ? "Auto" : theme === "light" ? "Claro" : "Escuro"}
+          </button>
+
+          <button className="btn ghost sm" style={{ marginRight: 10 }} onClick={logout} title="Sair">
+            Sair
           </button>
 
           <div className="topbar-status">
@@ -240,12 +358,122 @@ const App = () => {
         </div>
       </main>
 
+      {!credentialStatus.loading && !credentialStatus.configured && (
+        <CredentialsModal token={auth.token} onSaved={(status) => setCredentialStatus({ loading: false, ...status })}/>
+      )}
+
+    </div>
+  );
+};
+
+const LoginScreen = ({ needsSetup, onSuccess }) => {
+  const [mode] = useState(needsSetup ? "setup" : "login");
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    password: "",
+    clientName: "Norte",
+    schemaName: "trucks",
+  });
+  const [error, setError] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  const submit = async (event) => {
+    event.preventDefault();
+    setSaving(true);
+    setError("");
+    try {
+      const result = await apiJson(mode === "setup" ? "/api/auth/setup" : "/api/auth/login", {
+        method: "POST",
+        body: form,
+      });
+      onSuccess(result);
+    } catch (e) {
+      setError("Nao foi possivel acessar. Confira os dados informados.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const field = (key) => ({
+    value: form[key],
+    onChange: (event) => setForm((current) => ({ ...current, [key]: event.target.value })),
+  });
+
+  return (
+    <div className="auth-shell">
+      <form className="auth-panel" onSubmit={submit}>
+        <div>
+          <h1>{mode === "setup" ? "Primeiro acesso" : "Entrar"}</h1>
+          <div className="sub">{mode === "setup" ? "Crie o admin e vincule o cliente inicial" : "Acesse o painel Norte Telemetria"}</div>
+        </div>
+        {mode === "setup" && (
+          <>
+            <label className="form-field">Nome<input {...field("name")} required autoComplete="name"/></label>
+            <label className="form-field">Cliente<input {...field("clientName")} required/></label>
+            <label className="form-field">Schema do cliente<input {...field("schemaName")} required pattern="[a-z][a-z0-9_]*"/></label>
+          </>
+        )}
+        <label className="form-field">Email<input type="email" {...field("email")} required autoComplete="email"/></label>
+        <label className="form-field">Senha<input type="password" {...field("password")} required autoComplete={mode === "setup" ? "new-password" : "current-password"}/></label>
+        {error && <div className="form-error">{error}</div>}
+        <button className="btn primary" type="submit" disabled={saving}>{saving ? "Entrando..." : mode === "setup" ? "Criar acesso" : "Entrar"}</button>
+      </form>
+    </div>
+  );
+};
+
+const CredentialsModal = ({ token, onSaved }) => {
+  const [form, setForm] = useState({
+    apiUrl: "https://webservice.newrastreamentoonline.com.br/",
+    login: "",
+    password: "",
+  });
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+
+  const submit = async (event) => {
+    event.preventDefault();
+    setSaving(true);
+    setError("");
+    try {
+      const status = await apiJson("/api/integration/credentials", {
+        method: "POST",
+        token,
+        body: form,
+      });
+      onSaved(status);
+    } catch (e) {
+      setError("Nao foi possivel salvar. Confira a chave APP_ENCRYPTION_KEY e tente novamente.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const field = (key) => ({
+    value: form[key],
+    onChange: (event) => setForm((current) => ({ ...current, [key]: event.target.value })),
+  });
+
+  return (
+    <div className="modal-backdrop">
+      <form className="modal-card" onSubmit={submit}>
+        <div className="section-head">
+          <h2>Credenciais Trucks</h2>
+        </div>
+        <label className="form-field">URL da API<input {...field("apiUrl")} required/></label>
+        <label className="form-field">Login<input {...field("login")} required autoComplete="off"/></label>
+        <label className="form-field">Senha<input type="password" {...field("password")} required autoComplete="new-password"/></label>
+        {error && <div className="form-error">{error}</div>}
+        <button className="btn primary" type="submit" disabled={saving}>{saving ? "Salvando..." : "Salvar credenciais"}</button>
+      </form>
     </div>
   );
 };
 
 // Settings — with theme + density switchers
-const SettingsScreen = ({ theme, setTheme, density, setDensity }) => {
+const SettingsScreen = ({ theme, setTheme, density, setDensity, token, credentialStatus, onCredentialsSaved }) => {
+  const [settingsView, setSettingsView] = useState("home");
   const themeOptions = [
     {
       id: "auto",
@@ -322,6 +550,25 @@ const SettingsScreen = ({ theme, setTheme, density, setDensity }) => {
       </div>
     </div>
   );
+
+  if (settingsView === "trucks") {
+    return (
+      <TrucksCredentialsSettings
+        token={token}
+        credential={credentialStatus.credential}
+        onBack={() => setSettingsView("home")}
+        onSaved={onCredentialsSaved}
+      />
+    );
+  }
+
+  if (settingsView === "clients") {
+    return <ClientsSettings token={token} onBack={() => setSettingsView("home")}/>;
+  }
+
+  if (settingsView === "users") {
+    return <UsersSettings token={token} onBack={() => setSettingsView("home")}/>;
+  }
 
   return (
     <div className="view">
@@ -450,14 +697,21 @@ const SettingsScreen = ({ theme, setTheme, density, setDensity }) => {
       <div className="section-head"><h2>Outras configurações</h2></div>
       <div className="grid cols-3">
         {[
-          { t: "Conta da empresa", d: "Norte Logística · CNPJ 32.480.591/0001-04", i: "user" },
-          { t: "Usuários e permissões", d: "8 usuários · 3 perfis", i: "user" },
+          { t: "Clientes", d: "Criar acesso e schema do cliente", i: "user", onClick: () => setSettingsView("clients") },
+          { t: "Usuários e permissões", d: "Criar acessos para ambientes", i: "user", onClick: () => setSettingsView("users") },
           { t: "Perfis de alerta", d: "Velocidade · RPM · Cerca virtual · Sirene", i: "bell" },
-          { t: "Integração Trucks", d: "API v3.4 · token expira em 142 dias", i: "plug" },
+          {
+            t: "Integração Trucks",
+            d: credentialStatus.configured
+              ? `${credentialStatus.credential?.login || "Credencial ativa"} · configurada`
+              : "Credenciais pendentes",
+            i: "plug",
+            onClick: () => setSettingsView("trucks"),
+          },
           { t: "Webhooks e notificações", d: "2 webhooks ativos", i: "external" },
           { t: "Exportação e BI", d: "PowerBI · Looker Studio · CSV", i: "download" },
         ].map((c, i) => (
-          <div key={i} className="card" style={{cursor: "pointer"}}>
+          <button key={i} className="card settings-card-button" onClick={c.onClick || (() => {})} type="button">
             <div className="row between">
               <div className="row" style={{gap: 10}}>
                 <div style={{
@@ -474,11 +728,365 @@ const SettingsScreen = ({ theme, setTheme, density, setDensity }) => {
               <Icon name="chevron-right" size={14} className="dim"/>
             </div>
             <div className="muted" style={{fontSize: 12, marginTop: 8}}>{c.d}</div>
-          </div>
+          </button>
         ))}
       </div>
     </div>
   );
 };
+
+const TrucksCredentialsSettings = ({ token, credential, onBack, onSaved }) => {
+  const [form, setForm] = useState({
+    apiUrl: credential?.apiUrl || "https://webservice.newrastreamentoonline.com.br/",
+    login: credential?.login || "",
+    password: "",
+  });
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    setForm({
+      apiUrl: credential?.apiUrl || "https://webservice.newrastreamentoonline.com.br/",
+      login: credential?.login || "",
+      password: "",
+    });
+  }, [credential]);
+
+  const field = (key) => ({
+    value: form[key],
+    onChange: (event) => setForm((current) => ({ ...current, [key]: event.target.value })),
+  });
+
+  const submit = async (event) => {
+    event.preventDefault();
+    setSaving(true);
+    setMessage("");
+    setError("");
+    try {
+      const status = await apiJson("/api/integration/credentials", {
+        method: "POST",
+        token,
+        body: form,
+      });
+      onSaved(status);
+      setForm((current) => ({ ...current, password: "" }));
+      setMessage("Credenciais salvas.");
+    } catch (e) {
+      setError("Não foi possível salvar as credenciais.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="view">
+      <div className="page-head">
+        <div>
+          <button className="btn ghost sm" onClick={onBack} type="button">Voltar</button>
+          <h1 style={{marginTop: 10}}>Integração Trucks</h1>
+          <div className="sub">Credenciais usadas pela ingestão para consultar a API da Trucks</div>
+        </div>
+      </div>
+
+      <form className="card settings-form" onSubmit={submit}>
+        <label className="form-field">URL da API<input {...field("apiUrl")} required/></label>
+        <label className="form-field">Login<input {...field("login")} required autoComplete="off"/></label>
+        <label className="form-field">
+          Senha
+          <input type="password" {...field("password")} placeholder={credential ? "Deixe em branco para manter a senha atual" : ""} autoComplete="new-password"/>
+        </label>
+        {message && <div className="form-success">{message}</div>}
+        {error && <div className="form-error">{error}</div>}
+        <div className="row" style={{gap: 8}}>
+          <button className="btn primary" type="submit" disabled={saving}>{saving ? "Salvando..." : "Salvar credenciais"}</button>
+          <button className="btn ghost" type="button" onClick={onBack}>Cancelar</button>
+        </div>
+      </form>
+    </div>
+  );
+};
+
+const ClientsSettings = ({ token, onBack }) => {
+  const [clients, setClients] = useState([]);
+  const [form, setForm] = useState({
+    clientName: "",
+    slug: "",
+    schemaName: "",
+    sourceSchema: "trucks",
+    copyData: false,
+  });
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
+
+  const loadClients = async () => {
+    setLoading(true);
+    try {
+      const rows = await apiJson("/api/clients", { token });
+      setClients(rows);
+      setError("");
+    } catch (e) {
+      setError("Não foi possível carregar os clientes.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadClients();
+  }, [token]);
+
+  const field = (key) => ({
+    value: form[key],
+    onChange: (event) => {
+      const value = event.target.value;
+      setForm((current) => {
+        const next = { ...current, [key]: value };
+        if (key === "clientName" && !current.slug && !current.schemaName) {
+          const slug = slugify(value);
+          next.slug = slug;
+          next.schemaName = slug.replace(/-/g, "_");
+        }
+        if (key === "slug" && !current.schemaName) {
+          next.schemaName = slugify(value).replace(/-/g, "_");
+        }
+        return next;
+      });
+    },
+  });
+
+  const submit = async (event) => {
+    event.preventDefault();
+    setSaving(true);
+    setError("");
+    setMessage("");
+    try {
+      await apiJson("/api/clients", {
+        method: "POST",
+        token,
+        body: form,
+      });
+      setForm({ clientName: "", slug: "", schemaName: "", sourceSchema: "trucks", copyData: false });
+      setMessage("Cliente criado.");
+      await loadClients();
+    } catch (e) {
+      setError("Não foi possível criar o cliente. Confira se slug e schema ainda não existem.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="view">
+      <div className="page-head">
+        <div>
+          <button className="btn ghost sm" onClick={onBack} type="button">Voltar</button>
+          <h1 style={{marginTop: 10}}>Clientes</h1>
+          <div className="sub">Criação manual do acesso e schema operacional do cliente</div>
+        </div>
+      </div>
+
+      <form className="card settings-form" onSubmit={submit} style={{marginBottom: 16}}>
+        <div className="section-head"><h2>Novo cliente</h2></div>
+        <label className="form-field">Nome do cliente<input {...field("clientName")} required/></label>
+        <div className="grid cols-2" style={{gap: 12}}>
+          <label className="form-field">Slug<input {...field("slug")} required pattern="[a-z0-9][a-z0-9_-]*"/></label>
+          <label className="form-field">Schema<input {...field("schemaName")} required pattern="[a-z][a-z0-9_]*"/></label>
+        </div>
+        <div className="grid cols-2" style={{gap: 12}}>
+          <label className="form-field">Schema base<input {...field("sourceSchema")} placeholder="trucks" pattern="[a-z][a-z0-9_]*"/></label>
+          <label className="check-field">
+            <input
+              type="checkbox"
+              checked={form.copyData}
+              onChange={(event) => setForm((current) => ({ ...current, copyData: event.target.checked }))}
+            />
+            Copiar dados do schema base
+          </label>
+        </div>
+        {message && <div className="form-success">{message}</div>}
+        {error && <div className="form-error">{error}</div>}
+        <button className="btn primary" type="submit" disabled={saving}>{saving ? "Criando..." : "Criar cliente"}</button>
+      </form>
+
+      <div className="card card-flush">
+        <div className="card-header">
+          <h3>Clientes cadastrados</h3>
+          <span className="meta">{loading ? "carregando" : `${clients.length} clientes`}</span>
+        </div>
+        <table className="tbl">
+          <thead>
+            <tr>
+              <th>Cliente</th>
+              <th>Slug</th>
+              <th>Schema</th>
+              <th>Status</th>
+              <th style={{textAlign: "right"}}>Usuários</th>
+            </tr>
+          </thead>
+          <tbody>
+            {clients.map((client) => (
+              <tr key={client.id}>
+                <td>{client.name}</td>
+                <td className="num muted">{client.slug}</td>
+                <td className="num">{client.schemaName}</td>
+                <td>{client.enabled ? <span className="badge ok">Ativo</span> : <span className="badge">Inativo</span>}</td>
+                <td className="num" style={{textAlign: "right"}}>{client.users}</td>
+              </tr>
+            ))}
+            {!loading && clients.length === 0 && (
+              <tr><td colSpan={5} className="muted">Nenhum cliente cadastrado.</td></tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+};
+
+const UsersSettings = ({ token, onBack }) => {
+  const [users, setUsers] = useState([]);
+  const [clients, setClients] = useState([]);
+  const [form, setForm] = useState({ name: "", email: "", password: "", clientId: "", role: "viewer" });
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
+
+  const load = async () => {
+    setLoading(true);
+    try {
+      const [userRows, clientRows] = await Promise.all([
+        apiJson("/api/users", { token }),
+        apiJson("/api/clients", { token }),
+      ]);
+      setUsers(userRows);
+      setClients(clientRows);
+      setForm((current) => ({ ...current, clientId: current.clientId || String(clientRows[0]?.id || "") }));
+      setError("");
+    } catch (e) {
+      setError("Não foi possível carregar usuários.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    load();
+  }, [token]);
+
+  const field = (key) => ({
+    value: form[key],
+    onChange: (event) => setForm((current) => ({ ...current, [key]: event.target.value })),
+  });
+
+  const submit = async (event) => {
+    event.preventDefault();
+    setSaving(true);
+    setMessage("");
+    setError("");
+    try {
+      await apiJson("/api/users", {
+        method: "POST",
+        token,
+        body: form,
+      });
+      setForm((current) => ({ name: "", email: "", password: "", clientId: current.clientId, role: "viewer" }));
+      setMessage("Usuário criado.");
+      await load();
+    } catch (e) {
+      setError("Não foi possível criar o usuário.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="view">
+      <div className="page-head">
+        <div>
+          <button className="btn ghost sm" onClick={onBack} type="button">Voltar</button>
+          <h1 style={{marginTop: 10}}>Usuários e permissões</h1>
+          <div className="sub">Crie acessos para ambientes existentes, sem criar novos schemas</div>
+        </div>
+      </div>
+
+      <form className="card settings-form" onSubmit={submit} style={{marginBottom: 16}}>
+        <div className="section-head"><h2>Novo usuário</h2></div>
+        <div className="grid cols-2" style={{gap: 12}}>
+          <label className="form-field">Nome<input {...field("name")} required/></label>
+          <label className="form-field">Email<input type="email" {...field("email")} required/></label>
+        </div>
+        <label className="form-field">Senha inicial<input type="password" {...field("password")} required autoComplete="new-password"/></label>
+        <div className="grid cols-2" style={{gap: 12}}>
+          <label className="form-field">
+            Ambiente
+            <select className="form-select" {...field("clientId")} required>
+              {clients.map((client) => (
+                <option key={client.id} value={client.id}>{client.name}</option>
+              ))}
+            </select>
+          </label>
+          <label className="form-field">
+            Perfil
+            <select className="form-select" {...field("role")}>
+              <option value="viewer">Visualizador</option>
+              <option value="operator">Operador</option>
+              <option value="admin">Admin do ambiente</option>
+              <option value="owner">Dono do ambiente</option>
+            </select>
+          </label>
+        </div>
+        {message && <div className="form-success">{message}</div>}
+        {error && <div className="form-error">{error}</div>}
+        <button className="btn primary" type="submit" disabled={saving || !clients.length}>{saving ? "Criando..." : "Criar usuário"}</button>
+      </form>
+
+      <div className="card card-flush">
+        <div className="card-header">
+          <h3>Usuários cadastrados</h3>
+          <span className="meta">{loading ? "carregando" : `${users.length} vínculos`}</span>
+        </div>
+        <table className="tbl">
+          <thead>
+            <tr>
+              <th>Usuário</th>
+              <th>Email</th>
+              <th>Ambiente</th>
+              <th>Perfil</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {users.map((user, index) => (
+              <tr key={`${user.id}-${user.clientId || index}`}>
+                <td>{user.name}</td>
+                <td className="num muted">{user.email}</td>
+                <td>{user.clientName || (user.isPlatformAdmin ? "Todos" : "-")}</td>
+                <td className="num">{user.isPlatformAdmin ? "platform_admin" : user.role}</td>
+                <td>{user.enabled ? <span className="badge ok">Ativo</span> : <span className="badge">Inativo</span>}</td>
+              </tr>
+            ))}
+            {!loading && users.length === 0 && (
+              <tr><td colSpan={5} className="muted">Nenhum usuário cadastrado.</td></tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+};
+
+function slugify(value) {
+  return String(value || "")
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9_-]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
 
 export default App;
