@@ -1,6 +1,6 @@
 import * as React from "react";
 import { EMPTY_DATA } from "../live-data";
-import { Icon, Plate, StatusBadge } from "../components";
+import { Icon, Plate, SelectFilter, StatusBadge } from "../components";
 
 // Mapa da Frota - Norte Telemetria
 export const MapScreen = ({ data, onGoToVehicle }) => {
@@ -58,6 +58,18 @@ export const MapScreen = ({ data, onGoToVehicle }) => {
   }, []);
 
   const ufs = ["todos", ...new Set(fleet.map(v => v.uf))];
+  const statusOptions = [
+    { value: "todos", label: "Todos" },
+    { value: "online", label: "Online" },
+    { value: "atrasado", label: "Atrasado" },
+    { value: "sem-comm", label: "Sem comunicacao" },
+  ];
+  const ufOptions = ufs.map((uf) => ({ value: uf, label: uf === "todos" ? "Todas UF" : uf }));
+  const truckState = (v) => {
+    if (!v.ignition) return "off";
+    return Number(v.speed || 0) > 0 ? "on" : "idle";
+  };
+  const truckClass = (v) => ({ on: "ok", idle: "warn", off: "crit" }[truckState(v)]);
   const filtered = fleet.filter(v => {
     if (statusFilter !== "todos" && v.status !== statusFilter) return false;
     if (ufFilter !== "todos" && v.uf !== ufFilter) return false;
@@ -90,9 +102,9 @@ export const MapScreen = ({ data, onGoToVehicle }) => {
       const lng = Number(v.lng);
       if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
 
-      const cls = v.status === "online" ? "ok" : v.status === "atrasado" ? "warn" : "crit";
+      const cls = truckClass(v);
       const html = `<div class="truck-marker ${cls}">
-        ${v.status === "online" ? '<span class="pulse"></span>' : ""}
+        ${truckState(v) === "on" ? '<span class="pulse"></span>' : ""}
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
           <path d="M3 7h11v9H3z"/><path d="M14 10h4l3 3v3h-7"/><circle cx="7" cy="18" r="2"/><circle cx="17" cy="18" r="2"/>
         </svg>
@@ -139,13 +151,13 @@ export const MapScreen = ({ data, onGoToVehicle }) => {
         }}>
           <span style={{fontWeight: 500, color: "var(--text-2)"}}>Frota</span>
           <span style={{display: "flex", gap: 5, alignItems: "center"}}>
-            <span className="dot ok"/> Online <b className="num">{fleet.filter(v=>v.status==="online").length}</b>
+            <span className="dot ok"/> Ligado <b className="num">{fleet.filter(v=>truckState(v)==="on").length}</b>
           </span>
           <span style={{display: "flex", gap: 5, alignItems: "center"}}>
-            <span className="dot warn"/> Atrasado <b className="num">{fleet.filter(v=>v.status==="atrasado").length}</b>
+            <span className="dot warn"/> Ligado parado <b className="num">{fleet.filter(v=>truckState(v)==="idle").length}</b>
           </span>
           <span style={{display: "flex", gap: 5, alignItems: "center"}}>
-            <span className="dot crit"/> Sem comm <b className="num">{fleet.filter(v=>v.status==="sem-comm").length}</b>
+            <span className="dot crit"/> Desligado <b className="num">{fleet.filter(v=>truckState(v)==="off").length}</b>
           </span>
         </div>
 
@@ -190,22 +202,8 @@ export const MapScreen = ({ data, onGoToVehicle }) => {
           </div>
         </div>
         <div className="map-panel-filters">
-          <button className={`tbl-filter ${statusFilter !== "todos" ? "active" : ""}`}
-                  onClick={() => {
-                    const opts = ["todos", "online", "atrasado", "sem-comm"];
-                    setStatusFilter(opts[(opts.indexOf(statusFilter) + 1) % opts.length]);
-                  }}>
-            Status <span className="v">{statusFilter}</span>
-            <Icon name="chevron-down" size={11}/>
-          </button>
-          <button className={`tbl-filter ${ufFilter !== "todos" ? "active" : ""}`}
-                  onClick={() => {
-                    const i = ufs.indexOf(ufFilter);
-                    setUfFilter(ufs[(i + 1) % ufs.length]);
-                  }}>
-            UF <span className="v">{ufFilter}</span>
-            <Icon name="chevron-down" size={11}/>
-          </button>
+          <SelectFilter label="Status" value={statusFilter} options={statusOptions} onChange={setStatusFilter} active={statusFilter !== "todos"}/>
+          <SelectFilter label="UF" value={ufFilter} options={ufOptions} onChange={setUfFilter} active={ufFilter !== "todos"}/>
         </div>
         <div className="map-panel-list">
           {filtered.map(v => (

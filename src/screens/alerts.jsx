@@ -1,22 +1,72 @@
 import * as React from "react";
 import { EMPTY_DATA } from "../live-data";
-import { Icon, KPI, Plate, SeverityBadge, fmtNum } from "../components";
+import { Icon, KPI, Plate, SelectFilter, SeverityBadge, fmtNum } from "../components";
 
 // Alertas e Ocorrencias - Norte Telemetria
-export const Alerts = ({ data, onGoToVehicle }) => {
+export const Alerts = ({ data, onGoToVehicle, initialFilters = {} }) => {
   const D = data || EMPTY_DATA;
   const [search, setSearch] = React.useState("");
-  const [sevFilter, setSevFilter] = React.useState("todos");
-  const [period, setPeriod] = React.useState("24h");
+  const [sevFilter, setSevFilter] = React.useState(initialFilters.severity || "todos");
+  const [statusFilter, setStatusFilter] = React.useState(initialFilters.status || "todos");
+  const [ufFilter, setUfFilter] = React.useState(initialFilters.uf || "todos");
+  const [eventFilter, setEventFilter] = React.useState(initialFilters.eventType || "todos");
+  const [vehicleFilter, setVehicleFilter] = React.useState(initialFilters.vehicle || "todos");
+  const [period, setPeriod] = React.useState(initialFilters.period || "24h");
   const [page, setPage] = React.useState(1);
   const perPage = 15;
 
   const all = D.ALERTS;
   const periodCutoff = period === "24h" ? 1440 : period === "7d" ? 10080 : period === "30d" ? 43200 : Infinity;
+  const vehicleByPlate = new Map(D.FLEET.map((v) => [v.plate, v]));
+  const eventOptions = [
+    { value: "todos", label: "Todos eventos" },
+    ...Array.from(new Set(all.map((a) => a.label))).sort().map((label) => ({ value: label, label })),
+  ];
+  const vehicleOptions = [
+    { value: "todos", label: "Todos veiculos" },
+    ...D.FLEET.map((v) => ({ value: v.plate, label: v.plate })),
+  ];
+  const ufOptions = [
+    { value: "todos", label: "Todas UF" },
+    ...Array.from(new Set(D.FLEET.map((v) => v.uf).filter(Boolean))).sort().map((uf) => ({ value: uf, label: uf })),
+  ];
+  const severityOptions = [
+    { value: "todos", label: "Todas" },
+    { value: "crit", label: "Critico" },
+    { value: "warn", label: "Atencao" },
+    { value: "info", label: "Info" },
+  ];
+  const statusOptions = [
+    { value: "todos", label: "Todos" },
+    { value: "online", label: "Online" },
+    { value: "atrasado", label: "Atrasado" },
+    { value: "sem-comm", label: "Sem comunicacao" },
+  ];
+  const periodOptions = [
+    { value: "24h", label: "Ultimas 24h" },
+    { value: "7d", label: "Ultimos 7 dias" },
+    { value: "30d", label: "Ultimos 30 dias" },
+    { value: "tudo", label: "Tudo" },
+  ];
+
+  React.useEffect(() => {
+    setSevFilter(initialFilters.severity || "todos");
+    setStatusFilter(initialFilters.status || "todos");
+    setUfFilter(initialFilters.uf || "todos");
+    setEventFilter(initialFilters.eventType || "todos");
+    setVehicleFilter(initialFilters.vehicle || "todos");
+    setPeriod(initialFilters.period || "24h");
+    setPage(1);
+  }, [initialFilters.severity, initialFilters.status, initialFilters.uf, initialFilters.eventType, initialFilters.vehicle, initialFilters.period]);
 
   let rows = all.filter(a => {
+    const vehicle = vehicleByPlate.get(a.veh);
     if (a.minAgo > periodCutoff) return false;
     if (sevFilter !== "todos" && a.sev !== sevFilter) return false;
+    if (statusFilter !== "todos" && vehicle?.status !== statusFilter) return false;
+    if (ufFilter !== "todos" && vehicle?.uf !== ufFilter) return false;
+    if (eventFilter !== "todos" && a.label !== eventFilter) return false;
+    if (vehicleFilter !== "todos" && a.veh !== vehicleFilter) return false;
     if (search) {
       const q = search.toLowerCase();
       if (!a.veh.toLowerCase().includes(q) && !a.driver.toLowerCase().includes(q) && !a.label.toLowerCase().includes(q)) return false;
@@ -39,23 +89,6 @@ export const Alerts = ({ data, onGoToVehicle }) => {
           <h1>Alertas e ocorrências</h1>
           <div className="sub">Eventos de telemetria, bordo e bloqueio · {period === "24h" ? "últimas 24h" : period}</div>
         </div>
-        <div className="actions">
-          <div className="row" style={{gap: 4, padding: 2, background: "var(--surface-2)", borderRadius: 6, border: "1px solid var(--border)"}}>
-            {["24h", "7d", "30d", "tudo"].map(p => (
-              <button key={p}
-                      className={`btn ghost sm ${period === p ? "" : ""}`}
-                      style={{
-                        background: period === p ? "var(--surface)" : "transparent",
-                        boxShadow: period === p ? "var(--shadow-sm)" : "none",
-                        color: period === p ? "var(--text)" : "var(--text-3)",
-                        height: 24, padding: "0 10px",
-                      }}
-                      onClick={() => { setPeriod(p); setPage(1); }}>
-                {p}
-              </button>
-            ))}
-          </div>
-        </div>
       </div>
 
       <div className="grid cols-4" style={{marginBottom: 16}}>
@@ -76,7 +109,7 @@ export const Alerts = ({ data, onGoToVehicle }) => {
               onChange={e => { setSearch(e.target.value); setPage(1); }}
             />
           </div>
-          <button className={`tbl-filter ${sevFilter !== "todos" ? "active" : ""}`}
+          <button style={{display: "none"}} className={`tbl-filter ${sevFilter !== "todos" ? "active" : ""}`}
                   onClick={() => {
                     const opts = ["todos", "crit", "warn", "info"];
                     setSevFilter(opts[(opts.indexOf(sevFilter) + 1) % opts.length]);
@@ -84,6 +117,15 @@ export const Alerts = ({ data, onGoToVehicle }) => {
                   }}>
             Severidade <span className="v">{sevFilter === "crit" ? "Crítico" : sevFilter === "warn" ? "Atenção" : sevFilter === "info" ? "Info" : "todas"}</span>
           </button>
+        </div>
+
+        <div className="tbl-toolbar tbl-toolbar-secondary">
+          <SelectFilter label="Periodo" value={period} options={periodOptions} onChange={(v) => { setPeriod(v); setPage(1); }} active={period !== "24h"}/>
+          <SelectFilter label="Severidade" value={sevFilter} options={severityOptions} onChange={(v) => { setSevFilter(v); setPage(1); }} active={sevFilter !== "todos"}/>
+          <SelectFilter label="Status" value={statusFilter} options={statusOptions} onChange={(v) => { setStatusFilter(v); setPage(1); }} active={statusFilter !== "todos"}/>
+          <SelectFilter label="UF" value={ufFilter} options={ufOptions} onChange={(v) => { setUfFilter(v); setPage(1); }} active={ufFilter !== "todos"}/>
+          <SelectFilter label="Tipo" value={eventFilter} options={eventOptions} onChange={(v) => { setEventFilter(v); setPage(1); }} active={eventFilter !== "todos"}/>
+          <SelectFilter label="Veiculo" value={vehicleFilter} options={vehicleOptions} onChange={(v) => { setVehicleFilter(v); setPage(1); }} active={vehicleFilter !== "todos"}/>
         </div>
 
         <table className="tbl">

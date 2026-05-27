@@ -27,17 +27,20 @@ function readRoute() {
   if (typeof window === "undefined") return { screen: "dashboard" };
   const h = (window.location.hash || "").replace(/^#\/?/, "");
   if (!h) return { screen: "dashboard" };
-  const parts = h.split("/");
+  const [path, query = ""] = h.split("?");
+  const params = Object.fromEntries(new URLSearchParams(query).entries());
+  const parts = path.split("/");
   if (parts[0] === "vehicle" && parts[1]) return { screen: "vehicle", plate: decodeURIComponent(parts[1]) };
-  return { screen: parts[0] };
+  return { screen: parts[0], params };
 }
 
 function setRoute(r) {
   if (typeof window === "undefined") return;
+  const query = r.params ? `?${new URLSearchParams(r.params).toString()}` : "";
   if (r.screen === "vehicle") {
     window.location.hash = "/vehicle/" + encodeURIComponent(r.plate);
   } else {
-    window.location.hash = "/" + r.screen;
+    window.location.hash = "/" + r.screen + query;
   }
 }
 
@@ -86,7 +89,10 @@ const App = () => {
     return undefined;
   }, [theme, density]);
 
-  const go = (screen, extra = {}) => setRoute({ screen, ...extra });
+  const go = (screen, extra = {}) => {
+    const { params, ...rest } = extra;
+    setRoute({ screen, params, ...rest });
+  };
   const goVehicle = (plate) => setRoute({ screen: "vehicle", plate });
   const onBack = () => setRoute({ screen: "vehicles" });
 
@@ -108,7 +114,7 @@ const App = () => {
   const activeNav = NAV.find(n => n.id === route.screen) || NAV.find(n => n.id === "vehicles");
   const onlineCount = D.FLEET.filter(v => v.status === "online").length;
 
-  const onNavigate = (screen) => go(screen);
+  const onNavigate = (screen, params) => go(screen, params ? { params } : {});
 
   let body = null;
   switch (route.screen) {
@@ -125,7 +131,7 @@ const App = () => {
       body = <VehicleDetail data={D} plate={route.plate} onBack={onBack} onGoToVehicle={goVehicle}/>;
       break;
     case "alerts":
-      body = <Alerts data={D} onGoToVehicle={goVehicle}/>;
+      body = <Alerts data={D} onGoToVehicle={goVehicle} initialFilters={route.params}/>;
       break;
     case "reports":
       body = <Reports data={D} onGoToVehicle={goVehicle}/>;

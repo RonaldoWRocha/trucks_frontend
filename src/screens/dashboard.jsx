@@ -6,6 +6,16 @@ export const Dashboard = ({ data, onGoToVehicle, onNavigate }) => {
   const D = data || EMPTY_DATA;
   const fleet = D.FLEET;
   const n = (value) => Number(value) || 0;
+  const dayLabel = (day) => ({
+    mon: "Seg", monday: "Seg", seg: "Seg",
+    tue: "Ter", tuesday: "Ter", ter: "Ter",
+    wed: "Qua", wednesday: "Qua", qua: "Qua",
+    thu: "Qui", thursday: "Qui", qui: "Qui",
+    fri: "Sex", friday: "Sex", sex: "Sex",
+    sat: "Sab", saturday: "Sab", sab: "Sab",
+    sun: "Dom", sunday: "Dom", dom: "Dom",
+    today: "Hoje", hoje: "Hoje",
+  }[String(day).toLowerCase()] || day);
 
   const online = fleet.filter(v => v.status === "online").length;
   const atrasados = fleet.filter(v => v.status === "atrasado").length;
@@ -57,7 +67,8 @@ export const Dashboard = ({ data, onGoToVehicle, onNavigate }) => {
           <div className="card-body">
             <BarChart rows={D.TOP_EVENT_TYPES.map(t => ({
               label: t.label, value: t.count, sev: t.sev
-            }))}/>
+            }))}
+            onRowClick={(row) => onNavigate("alerts", { eventType: row.label, period: "24h" })}/>
           </div>
         </div>
 
@@ -118,10 +129,10 @@ export const Dashboard = ({ data, onGoToVehicle, onNavigate }) => {
         </div>
 
         <div className="col" style={{gap: 16}}>
-          <div className="card">
+          <div className="card fleet-activity-card">
             <div className="section-head">
               <h2>Atividade da frota · 7 dias</h2>
-              <span className="muted num" style={{fontSize: 11.5}}>km/dia</span>
+              <span className="fleet-activity-legend"><span className="dot"/> Km por dia</span>
             </div>
             <div style={{display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 6, alignItems: "end", height: 84}}>
               {D.DAILY.map(d => {
@@ -131,11 +142,11 @@ export const Dashboard = ({ data, onGoToVehicle, onNavigate }) => {
                     <div style={{
                       width: "100%",
                       height: `${(d.km / max) * 70}px`,
-                      background: d.day === "Ter" ? "var(--brand-blue)" : "var(--brand-navy)",
+                      background: "var(--brand-blue-2)",
                       borderRadius: 3,
-                      opacity: d.day === "Ter" ? 1 : 0.18 + (d.km / max) * 0.55,
+                      opacity: 0.45 + (d.km / max) * 0.55,
                     }}/>
-                    <span className="muted" style={{fontSize: 10.5}}>{d.day}</span>
+                    <span className="muted" style={{fontSize: 10.5}}>{dayLabel(d.day)}</span>
                   </div>
                 );
               })}

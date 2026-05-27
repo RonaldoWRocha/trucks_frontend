@@ -177,12 +177,17 @@ export const Sparkline = ({ values, width = 120, height = 30, color = "currentCo
 };
 
 // Horizontal bar chart (already styled via .chart-bars)
-export const BarChart = ({ rows }) => {
+export const BarChart = ({ rows, onRowClick }) => {
   const max = Math.max(...rows.map(r => r.value), 1);
   return (
     <div className="chart-bars">
       {rows.map((r, i) => (
-        <div className="row" key={i}>
+        <div
+          className={`row ${onRowClick ? "clickable" : ""}`}
+          key={i}
+          onClick={onRowClick ? () => onRowClick(r) : undefined}
+          title={onRowClick ? "Ver alertas deste tipo" : undefined}
+        >
           <div className="label">{r.label}</div>
           <div className="bar-track">
             <div className={`bar-fill ${r.sev || ""}`} style={{ width: `${(r.value / max) * 100}%` }}/>
@@ -193,6 +198,18 @@ export const BarChart = ({ rows }) => {
     </div>
   );
 };
+
+export const SelectFilter = ({ label, value, options, onChange, active }) => (
+  <label className={`select-filter ${active ? "active" : ""}`}>
+    <span>{label}</span>
+    <select value={value} onChange={(e) => onChange(e.target.value)}>
+      {options.map((opt) => (
+        <option key={opt.value} value={opt.value}>{opt.label}</option>
+      ))}
+    </select>
+    <Icon name="chevron-down" size={11}/>
+  </label>
+);
 
 // Tabs
 export const Tabs = ({ tabs, active, onChange }) => (

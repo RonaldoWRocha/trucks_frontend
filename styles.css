@@ -636,6 +636,45 @@ input, select, textarea { font: inherit; color: inherit; }
 .tbl-filter.active { border-style: solid; background: var(--surface-2); color: var(--text); }
 .tbl-filter .v { color: var(--text); font-weight: 500; margin-left: 3px; }
 .tbl-filter svg { width: 12px; height: 12px; }
+.select-filter {
+  display: inline-flex; align-items: center; gap: 5px;
+  height: 28px; padding: 0 8px;
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--r);
+  color: var(--text-2);
+  font-size: 12px;
+  background: transparent;
+  position: relative;
+}
+.select-filter.active {
+  border-style: solid;
+  background: var(--surface-2);
+  color: var(--text);
+}
+.select-filter:hover { background: var(--hover); color: var(--text); }
+.select-filter select {
+  min-width: 74px;
+  max-width: 160px;
+  height: 26px;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  font-weight: 500;
+  font-size: 12px;
+  outline: none;
+  appearance: none;
+  padding: 0 14px 0 0;
+  cursor: pointer;
+}
+.select-filter svg {
+  position: absolute;
+  right: 7px;
+  pointer-events: none;
+}
+.tbl-toolbar-secondary {
+  padding-top: 8px;
+  background: var(--surface);
+}
 
 .tbl {
   width: 100%;
@@ -733,6 +772,41 @@ input, select, textarea { font: inherit; color: inherit; }
 .chart-bars .row .val {
   font-family: var(--font-mono); font-size: 11.5px; color: var(--text-2); text-align: right;
   font-feature-settings: "tnum";
+}
+.chart-bars .row.clickable {
+  cursor: pointer;
+  border-radius: 4px;
+}
+.chart-bars .row.clickable:hover .label,
+.chart-bars .row.clickable:hover .val {
+  color: var(--text);
+}
+.chart-bars .row.clickable:hover .bar-track {
+  background: var(--hover);
+}
+
+.fleet-activity-card {
+  background: var(--brand-navy);
+  border-color: var(--brand-navy-2);
+  color: #fff;
+}
+.fleet-activity-card h2,
+.fleet-activity-card .num {
+  color: #fff !important;
+}
+.fleet-activity-card .muted {
+  color: rgba(255,255,255,0.72);
+}
+.fleet-activity-legend {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: rgba(255,255,255,0.8);
+  font-size: 11.5px;
+}
+.fleet-activity-legend .dot {
+  background: var(--brand-blue-2);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--brand-blue-2) 18%, transparent);
 }
 
 /* Empty / loading */
