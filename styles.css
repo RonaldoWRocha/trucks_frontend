@@ -666,6 +666,14 @@ input, select, textarea { font: inherit; color: inherit; }
   padding: 0 14px 0 0;
   cursor: pointer;
 }
+.select-filter select option {
+  background: var(--surface);
+  color: var(--text);
+}
+:root[data-theme="dark"] .select-filter select option {
+  background: #0f0f11;
+  color: #fafafa;
+}
 .select-filter svg {
   position: absolute;
   right: 7px;

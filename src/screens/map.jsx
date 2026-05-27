@@ -143,7 +143,7 @@ export const MapScreen = ({ data, onGoToVehicle }) => {
 
         {/* Floating legend */}
         <div style={{
-          position: "absolute", left: 16, top: 16, zIndex: 1000,
+          position: "absolute", left: 54, top: 16, zIndex: 1000,
           background: "var(--surface)", border: "1px solid var(--border)",
           borderRadius: 8, padding: "8px 12px",
           boxShadow: "var(--shadow)",
