@@ -359,7 +359,7 @@ const App = () => {
         </div>
       </main>
 
-      {!credentialStatus.loading && !credentialStatus.configured && (
+      {!auth.session?.user?.isPlatformAdmin && !credentialStatus.loading && !credentialStatus.configured && (
         <CredentialsModal token={auth.token} onSaved={(status) => setCredentialStatus({ loading: false, ...status })}/>
       )}
 
