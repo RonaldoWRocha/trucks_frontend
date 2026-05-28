@@ -1070,6 +1070,48 @@ const UsersSettings = ({ token, onBack }) => {
     }
   };
 
+  const patchUserRow = (index, patch) => {
+    setUsers((current) => current.map((item, itemIndex) => (itemIndex === index ? { ...item, ...patch } : item)));
+  };
+
+  const updateUserRole = async (user) => {
+    const role = user.pendingRole || (user.isPlatformAdmin ? "platform_admin" : user.role || "viewer");
+    const clientId = user.pendingClientId || user.clientId || clients[0]?.id;
+    setError("");
+    setMessage("");
+    if (role !== "platform_admin" && !clientId) {
+      setError("Selecione um ambiente para esse perfil.");
+      return;
+    }
+    try {
+      await apiJson(`/api/users/${user.id}/role`, {
+        method: "PATCH",
+        token,
+        body: { role, clientId },
+      });
+      setMessage("Permissao atualizada.");
+      await load();
+    } catch (e) {
+      setError("Nao foi possivel atualizar esse usuario.");
+    }
+  };
+
+  const deleteUser = async (user) => {
+    if (!window.confirm(`Excluir o acesso de ${user.name}?`)) return;
+    setError("");
+    setMessage("");
+    try {
+      await apiJson(`/api/users/${user.id}`, {
+        method: "DELETE",
+        token,
+      });
+      setMessage("Usuario excluido.");
+      await load();
+    } catch (e) {
+      setError("Nao foi possivel excluir esse usuario.");
+    }
+  };
+
   return (
     <div className="view">
       <div className="page-head">
