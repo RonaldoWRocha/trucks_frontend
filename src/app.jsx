@@ -418,6 +418,10 @@ const LoginScreen = ({ needsSetup, onSuccess }) => {
     const clientId = user.pendingClientId || user.clientId || clients[0]?.id;
     setError("");
     setMessage("");
+    if (role !== "platform_admin" && !clientId) {
+      setError("Selecione um ambiente para esse perfil.");
+      return;
+    }
     try {
       await apiJson(`/api/users/${user.id}/role`, {
         method: "PATCH",
@@ -1140,6 +1144,7 @@ const UsersSettings = ({ token, onBack }) => {
                       value={user.pendingClientId || user.clientId || ""}
                       onChange={(event) => patchUserRow(index, { pendingClientId: event.target.value })}
                     >
+                      <option value="" disabled>Selecione</option>
                       {clients.map((client) => (
                         <option key={client.id} value={client.id}>{client.name}</option>
                       ))}
@@ -1150,7 +1155,13 @@ const UsersSettings = ({ token, onBack }) => {
                   <select
                     className="form-select table-select"
                     value={user.pendingRole || (user.isPlatformAdmin ? "platform_admin" : user.role || "viewer")}
-                    onChange={(event) => patchUserRow(index, { pendingRole: event.target.value })}
+                    onChange={(event) => {
+                      const nextRole = event.target.value;
+                      patchUserRow(index, {
+                        pendingRole: nextRole,
+                        pendingClientId: nextRole === "platform_admin" ? "" : user.pendingClientId || user.clientId || clients[0]?.id || "",
+                      });
+                    }}
                   >
                     <option value="platform_admin">Admin da plataforma</option>
                     <option value="viewer">Visualizador</option>
