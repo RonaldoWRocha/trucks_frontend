@@ -26,9 +26,12 @@ export const Dashboard = ({ data, onGoToVehicle, onNavigate }) => {
     .reduce((s, t) => s + n(t.count), 0);
   const totalAlerts24h = n(D.ALERT_STATS?.total24h) || chartAlerts24h;
   const criticos24h = n(D.ALERT_STATS?.critical24h) || chartCriticos24h;
-  const km7d = D.DAILY.reduce((s, d) => s + n(d.km), 0);
-  const fuelAvg = (D.DAILY.reduce((s, d) => s + n(d.fuel), 0) / Math.max(D.DAILY.length, 1)).toFixed(1);
-  const idleAvg = (fleet.reduce((s, v) => s + n(v.idleH), 0) / Math.max(fleet.length, 1)).toFixed(1);
+  const km7d = n(D.REPORT_SUMMARY?.totalDistance) || D.DAILY.reduce((s, d) => s + n(d.km), 0);
+  const fuelAvg = (n(D.REPORT_SUMMARY?.avgFuel) || (D.DAILY.reduce((s, d) => s + n(d.fuel), 0) / Math.max(D.DAILY.length, 1))).toFixed(1);
+  const idleAvg = (
+    n(D.REPORT_SUMMARY?.totalIdleH) / Math.max(n(D.REPORT_SUMMARY?.vehicles) || fleet.length, 1)
+    || fleet.reduce((s, v) => s + n(v.idleH), 0) / Math.max(fleet.length, 1)
+  ).toFixed(1);
 
   // Ranking: top 6 vehicles by alerts
   const ranking = [...fleet].sort((a, b) => b.alerts7d - a.alerts7d).slice(0, 6);

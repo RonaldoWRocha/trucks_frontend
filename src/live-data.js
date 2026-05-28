@@ -115,7 +115,7 @@ function buildData({ vehicles, alerts, dashboard, integration, reportSummary }) 
   const jobs = (integration.jobs || []).map(mapJob);
   const queue = (integration.queue || []).map(mapQueueItem);
   const payloadErrors = (integration.errors || []).map(mapPayloadError);
-  const daily = mapDaily(dashboard.daily, fleet);
+  const daily = mapDaily(dashboard.daily, dashboard.generatedAt);
   const topEventTypes = (dashboard.topEventTypes || []).map((item) => ({
     label: item.label,
     count: Number(item.count || 0),
@@ -245,17 +245,41 @@ function mapPayloadError(error) {
   };
 }
 
-function mapDaily(rows, fleet) {
-  if (Array.isArray(rows) && rows.length) {
-    return rows.map((row) => ({
-      day: String(row.day || "").trim() || "-",
-      km: Number(row.km || 0),
-      alerts: 0,
-      fuel: Number(row.fuel || 0),
-    }));
-  }
+function mapDaily(rows, generatedAt) {
+  const byDate = new Map(
+    (Array.isArray(rows) ? rows : [])
+      .filter((row) => row.date)
+      .map((row) => [
+        String(row.date).slice(0, 10),
+        {
+          day: String(row.day || "").trim() || "-",
+          km: Number(row.km || 0),
+          alerts: 0,
+          fuel: Number(row.fuel || 0),
+        },
+      ]),
+  );
+  const reference = new Date(generatedAt || Date.now());
+  if (Number.isNaN(reference.getTime())) return [];
 
-  return [];
+  return Array.from({ length: 7 }, (_, index) => {
+    const date = new Date(reference);
+    date.setHours(12, 0, 0, 0);
+    date.setDate(date.getDate() - (6 - index));
+    const key = [
+      date.getFullYear(),
+      pad(date.getMonth() + 1),
+      pad(date.getDate()),
+    ].join("-");
+    const existing = byDate.get(key);
+    if (existing) return existing;
+    return {
+      day: date.toLocaleDateString("pt-BR", { weekday: "short" }).replace(".", ""),
+      km: 0,
+      alerts: 0,
+      fuel: 0,
+    };
+  });
 }
 
 function buildRecentLog(integration) {

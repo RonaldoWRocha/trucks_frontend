@@ -7,10 +7,10 @@ export const Reports = ({ data, onGoToVehicle }) => {
   const fleet = D.FLEET;
 
   const n = (value) => Number(value) || 0;
-  const totalKm = fleet.reduce((s, v) => s + n(v.distance7d), 0);
-  const avgSpeed = (fleet.reduce((s, v) => s + n(v.avgSpeed), 0) / Math.max(fleet.length, 1)).toFixed(0);
-  const avgFuel = (fleet.reduce((s, v) => s + n(v.fuel), 0) / Math.max(fleet.length, 1)).toFixed(2);
-  const totalIdle = fleet.reduce((s, v) => s + n(v.idleH), 0).toFixed(0);
+  const totalKm = n(D.REPORT_SUMMARY?.totalDistance) || fleet.reduce((s, v) => s + n(v.distance7d), 0);
+  const avgSpeed = (n(D.REPORT_SUMMARY?.avgSpeed) || (fleet.reduce((s, v) => s + n(v.avgSpeed), 0) / Math.max(fleet.length, 1))).toFixed(0);
+  const avgFuel = (n(D.REPORT_SUMMARY?.avgFuel) || (fleet.reduce((s, v) => s + n(v.fuel), 0) / Math.max(fleet.length, 1))).toFixed(2);
+  const totalIdle = (n(D.REPORT_SUMMARY?.totalIdleH) || fleet.reduce((s, v) => s + n(v.idleH), 0)).toFixed(0);
 
   const mostEfficient = [...fleet].sort((a, b) => n(b.fuel) - n(a.fuel)).slice(0, 5);
   const leastEfficient = [...fleet].sort((a, b) => n(a.fuel) - n(b.fuel)).slice(0, 5);
