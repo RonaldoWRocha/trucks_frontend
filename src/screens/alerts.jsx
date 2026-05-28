@@ -46,8 +46,8 @@ export const Alerts = ({ data, onGoToVehicle, initialFilters = {} }) => {
     { value: "24h", label: "Ultimas 24h" },
     { value: "7d", label: "Ultimos 7 dias" },
     { value: "30d", label: "Ultimos 30 dias" },
-    { value: "tudo", label: "Tudo" },
   ];
+  const periodLabel = periodOptions.find((option) => option.value === period)?.label || period;
 
   React.useEffect(() => {
     setSevFilter(initialFilters.severity || "todos");
@@ -87,7 +87,7 @@ export const Alerts = ({ data, onGoToVehicle, initialFilters = {} }) => {
       <div className="page-head">
         <div>
           <h1>Alertas e ocorrências</h1>
-          <div className="sub">Eventos de telemetria, bordo e bloqueio · {period === "24h" ? "últimas 24h" : period}</div>
+          <div className="sub">Eventos de telemetria, bordo e bloqueio · {periodLabel.toLowerCase()}</div>
         </div>
       </div>
 

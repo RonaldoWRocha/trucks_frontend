@@ -139,7 +139,7 @@ export const VehicleDetail = ({ data, plate, onBack, onGoToVehicle }) => {
   }
 
   const timeline = D.vehicleTimeline(plate);
-  const vehAlerts = D.ALERTS.filter(a => a.veh === v.plate);
+  const vehAlerts = D.ALERTS.filter(a => a.veh === v.plate && a.minAgo <= 10080);
 
   const tabs = [
     { id: "overview", label: "Visão geral" },
@@ -268,7 +268,7 @@ export const VehicleDetail = ({ data, plate, onBack, onGoToVehicle }) => {
       {tab === "messages" && (
         <div className="card card-flush">
           <div className="card-header">
-            <h3>Mensagens de bordo · últimas 142</h3>
+            <h3>Mensagens de bordo</h3>
             <span className="meta">stream <span className="num">mensagens_cb</span></span>
           </div>
           <table className="tbl">
@@ -306,7 +306,7 @@ export const VehicleDetail = ({ data, plate, onBack, onGoToVehicle }) => {
       {tab === "telemetry" && (
         <div className="grid cols-2-1">
           <div className="card">
-            <div className="section-head"><h2>Telemetria · 24h</h2></div>
+            <div className="section-head"><h2>Telemetria</h2></div>
             <div className="col" style={{gap: 18}}>
               {[
                 { label: "Velocidade", values: [42,52,68,71,80,76,65,58,52,40,32,28], unit: "km/h" },
@@ -369,7 +369,7 @@ export const VehicleDetail = ({ data, plate, onBack, onGoToVehicle }) => {
 
       {tab === "alerts" && (
         <div className="card card-flush">
-          <div className="card-header"><h3>Alertas · {vehAlerts.length} registros</h3></div>
+          <div className="card-header"><h3>Alertas · 7 dias · {vehAlerts.length} registros</h3></div>
           <table className="tbl">
             <thead>
               <tr><th>Quando</th><th>Tipo</th><th>Severidade</th><th>Velocidade</th><th>Local</th></tr>

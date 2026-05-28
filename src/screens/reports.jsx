@@ -36,7 +36,7 @@ export const Reports = ({ data, onGoToVehicle }) => {
         <div className="card">
           <div className="section-head">
             <h2>Distância por veículo · 7 dias</h2>
-            <span className="muted num" style={{fontSize: 11.5}}>20 veículos</span>
+            <span className="muted num" style={{fontSize: 11.5}}>{fleet.length} veículos</span>
           </div>
           <BarChart rows={[...fleet]
             .sort((a, b) => n(b.distance7d) - n(a.distance7d))
@@ -138,8 +138,8 @@ export const Reports = ({ data, onGoToVehicle }) => {
 
       <div className="card card-flush">
         <div className="card-header">
-          <h3>Desempenho por veículo · período</h3>
-          <span className="meta">20 veículos</span>
+          <h3>Desempenho por veículo · 7 dias</h3>
+          <span className="meta">{fleet.length} veículos</span>
         </div>
         <table className="tbl">
           <thead>

@@ -15,6 +15,8 @@ export const Integration = ({ data }) => {
   const totalRead = D.JOBS.reduce((s, j) => s + j.read, 0);
   const totalIns = D.JOBS.reduce((s, j) => s + j.inserted, 0);
   const totalErr = D.JOBS.reduce((s, j) => s + j.errors, 0);
+  const totalQueue = D.QUEUE.reduce((s, item) => s + item.count, 0);
+  const successRate = totalRead > 0 ? (totalIns / totalRead) * 100 : 0;
 
   return (
     <div className="view">
@@ -28,12 +30,11 @@ export const Integration = ({ data }) => {
       <div className="grid cols-4" style={{marginBottom: 16}}>
         <KPI label="Status geral" icon="plug" value="Operacional"
              sub="1 job com timeout"/>
-        <KPI label="Registros lidos · hoje" icon="chart" value={fmtNum(totalRead)}
-             delta="+ 12,1%" deltaDir="up"/>
+        <KPI label="Registros lidos · última execução" icon="chart" value={fmtNum(totalRead)}/>
         <KPI label="Registros inseridos" icon="check" value={fmtNum(totalIns)}
-             sub={`${(totalIns/totalRead*100).toFixed(1)}% taxa de sucesso`}/>
-        <KPI label="Erros · hoje" icon="alert" value={totalErr}
-             delta="DLQ: 5 itens" deltaDir="down"/>
+             sub={`${successRate.toFixed(1)}% taxa de sucesso`}/>
+        <KPI label="Erros registrados" icon="alert" value={totalErr}
+             sub={`DLQ: ${D.PAYLOAD_ERRORS.length} itens`}/>
       </div>
 
       <div className="card card-flush" style={{marginBottom: 16}}>
@@ -113,21 +114,25 @@ export const Integration = ({ data }) => {
           <div className="card">
             <div className="section-head"><h2>Pendentes na fila</h2></div>
             <div className="row between" style={{marginBottom: 10}}>
-              <span style={{fontSize: 24, fontWeight: 500}} className="num">12</span>
-              <span className="muted" style={{fontSize: 12}}>processados nos últimos 5min: <b className="num" style={{color: "var(--text)"}}>1.842</b></span>
+              <span style={{fontSize: 24, fontWeight: 500}} className="num">{fmtNum(totalQueue)}</span>
+              <span className="muted" style={{fontSize: 12}}>itens aguardando processamento</span>
             </div>
             <div className="col" style={{gap: 6, fontSize: 12}}>
-              <div className="row between"><span className="muted">ocorrencias_telemetria</span><b className="num">7</b></div>
-              <div className="row between"><span className="muted">mensagens_cb</span><b className="num">3</b></div>
-              <div className="row between"><span className="muted">telemetria_relatorio</span><b className="num">2</b></div>
+              {D.QUEUE.map((item) => (
+                <div className="row between" key={`${item.job}-${item.status}`}>
+                  <span className="muted">{item.job} · {item.status}</span>
+                  <b className="num">{fmtNum(item.count)}</b>
+                </div>
+              ))}
+              {D.QUEUE.length === 0 && <div className="muted">Fila vazia</div>}
             </div>
           </div>
 
           <div className="card">
-            <div className="section-head"><h2>Taxa de sucesso · 24h</h2></div>
+            <div className="section-head"><h2>Taxa de sucesso · última execução</h2></div>
             <div className="row" style={{gap: 14, alignItems: "center"}}>
-              <div className="donut" style={{["--p"]: 98.7, ["--c"]: "var(--ok)", ["--size"]: "76px", ["--thick"]: "9px"}}>
-                <div className="donut-val" style={{fontSize: 13}}>98,7%</div>
+              <div className="donut" style={{["--p"]: successRate, ["--c"]: "var(--ok)", ["--size"]: "76px", ["--thick"]: "9px"}}>
+                <div className="donut-val" style={{fontSize: 13}}>{successRate.toFixed(1)}%</div>
               </div>
               <div className="col" style={{gap: 4, fontSize: 12, flex: 1}}>
                 <div className="row between"><span className="muted">Inseridos</span><b className="num">{fmtNum(totalIns)}</b></div>

@@ -10,6 +10,7 @@ export const EMPTY_DATA = {
   FLEET: [],
   ALERTS: [],
   JOBS: [],
+  QUEUE: [],
   PAYLOAD_ERRORS: [],
   RECENT_LOG: [],
   ALERT_STATS: { total24h: 0, critical24h: 0 },
@@ -42,7 +43,7 @@ export function useTelemetryData(token, clientId, refreshKey = 0) {
       try {
         const [vehicles, alerts, dashboard, integration, reportSummary] = await Promise.all([
           getJson("/api/vehicles?limit=500", token),
-          getJson("/api/alerts?period=30d&limit=500", token),
+          getJson("/api/alerts?period=30d&limit=5000", token),
           getJson("/api/dashboard", token),
           getJson("/api/integration", token),
           getJson("/api/reports/summary", token),
@@ -111,14 +112,8 @@ async function getJson(path, token) {
 function buildData({ vehicles, alerts, dashboard, integration, reportSummary }) {
   const fleet = vehicles.map(mapVehicle);
   const mappedAlerts = alerts.map(mapAlert);
-  const alertsByPlate = mappedAlerts.reduce((acc, alert) => {
-    acc[alert.veh] = (acc[alert.veh] || 0) + 1;
-    return acc;
-  }, {});
-  fleet.forEach((vehicle) => {
-    vehicle.alerts7d = alertsByPlate[vehicle.plate] || 0;
-  });
   const jobs = (integration.jobs || []).map(mapJob);
+  const queue = (integration.queue || []).map(mapQueueItem);
   const payloadErrors = (integration.errors || []).map(mapPayloadError);
   const daily = mapDaily(dashboard.daily, fleet);
   const topEventTypes = (dashboard.topEventTypes || []).map((item) => ({
@@ -134,6 +129,7 @@ function buildData({ vehicles, alerts, dashboard, integration, reportSummary }) 
     FLEET: fleet,
     ALERTS: mappedAlerts,
     JOBS: jobs,
+    QUEUE: queue,
     PAYLOAD_ERRORS: payloadErrors,
     RECENT_LOG: buildRecentLog(integration),
     ALERT_STATS: {
@@ -186,7 +182,7 @@ function mapVehicle(v) {
     distance7d: Number(v.distance7d || 0),
     motorOnH: round(Number(v.motorOnH || 0), 1),
     idleH: round(Number(v.idleH || 0), 1),
-    alerts7d: 0,
+    alerts7d: Number(v.alerts7d || 0),
   };
 }
 
@@ -229,6 +225,14 @@ function mapJob(job) {
   };
 }
 
+function mapQueueItem(item) {
+  return {
+    job: item.job || "-",
+    status: item.status || "-",
+    count: Number(item.count || 0),
+  };
+}
+
 function mapPayloadError(error) {
   return {
     id: `E-${error.id}`,
@@ -250,15 +254,7 @@ function mapDaily(rows, fleet) {
     }));
   }
 
-  const totalKm = fleet.reduce((sum, item) => sum + Number(item.distance7d || 0), 0);
-  return totalKm > 0
-    ? ["D-6", "D-5", "D-4", "D-3", "D-2", "D-1", "Hoje"].map((day) => ({
-        day,
-        km: Math.round(totalKm / 7),
-        alerts: 0,
-        fuel: 0,
-      }))
-    : [];
+  return [];
 }
 
 function buildRecentLog(integration) {

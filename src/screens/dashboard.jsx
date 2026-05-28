@@ -46,7 +46,7 @@ export const Dashboard = ({ data, onGoToVehicle, onNavigate }) => {
       {/* KPI Row */}
       <div className="grid cols-4" style={{marginBottom: 16}}>
         <KPI label="Veículos monitorados" icon="truck" value={fleet.length}/>
-        <KPI label="Comunicando hoje" icon="wifi" value={online + atrasados}
+        <KPI label="Comunicando agora" icon="wifi" value={online + atrasados}
              delta={`${online} online · ${atrasados} atrasados`}
              deltaDir="flat"/>
         <KPI label="Sem comunicação" icon="wifi-off" value={semComm}/>
