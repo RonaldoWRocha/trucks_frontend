@@ -118,12 +118,23 @@ export const SeverityBadge = ({ sev }) => {
 // Plate display
 export const Plate = ({ value, lg }) => <span className={`plate ${lg ? "lg" : ""}`}>{value}</span>;
 
+export const Hint = ({ text }) => {
+  if (!text) return null;
+  return (
+    <span className="hint" tabIndex={0} aria-label={text}>
+      <span className="hint-mark">?</span>
+      <span className="hint-bubble">{text}</span>
+    </span>
+  );
+};
+
 // KPI tile
-export const KPI = ({ label, value, unit, delta, deltaDir, sub, icon }) => (
+export const KPI = ({ label, value, unit, delta, deltaDir, sub, icon, hint }) => (
   <div className="kpi">
     <div className="kpi-label">
       {icon && <Icon name={icon}/>}
       <span>{label}</span>
+      <Hint text={hint}/>
     </div>
     <div className="kpi-value">{value}{unit && <span className="unit">{unit}</span>}</div>
     {(delta || sub) && (

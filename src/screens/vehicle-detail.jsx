@@ -2,6 +2,7 @@ import * as React from "react";
 import { API_BASE, EMPTY_DATA } from "../live-data";
 import {
   Icon,
+  Hint,
   KPI,
   Plate,
   SeverityBadge,
@@ -180,23 +181,32 @@ export const VehicleDetail = ({ data, plate, token, onBack, onGoToVehicle }) => 
         <div className="col" style={{gap: 16}}>
           {/* Metric tiles */}
           <div className="grid cols-5">
-            <KPI label="Velocidade média" icon="speedometer" value={v.avgSpeed} unit="km/h" sub="período: 7 dias"/>
-            <KPI label="Velocidade máxima" icon="speedometer" value={v.maxSpeed} unit="km/h"/>
-            <KPI label="Distância" icon="chart" value={fmtNum(v.distance7d)} unit="km" sub="7 dias"/>
-            <KPI label="Consumo médio" icon="fuel" value={v.fuel} unit="km/l" sub="meta 3,0"/>
-            <KPI label="Hodômetro" icon="gauge" value={fmtNum(v.odometer)} unit="km"/>
+            <KPI label="Velocidade média" icon="speedometer" value={v.avgSpeed} unit="km/h" sub="período: 7 dias"
+                 hint="Média das velocidades médias dos relatórios de telemetria do veículo nos últimos 7 dias."/>
+            <KPI label="Velocidade máxima" icon="speedometer" value={v.maxSpeed} unit="km/h"
+                 hint="Maior velocidade máxima registrada nos relatórios do período."/>
+            <KPI label="Distância" icon="chart" value={fmtNum(v.distance7d)} unit="km" sub="7 dias"
+                 hint="Soma da distância do veículo nos relatórios de telemetria dos últimos 7 dias."/>
+            <KPI label="Consumo médio" icon="fuel" value={v.fuel} unit="km/l" sub="meta 3,0"
+                 hint="Consumo médio em km/l calculado a partir dos relatórios do período."/>
+            <KPI label="Hodômetro" icon="gauge" value={fmtNum(v.odometer)} unit="km"
+                 hint="Último hodômetro conhecido, usando a mensagem mais recente ou o relatório mais recente disponível."/>
           </div>
           <div className="grid cols-5">
-            <KPI label="RPM médio" icon="gauge" value={fmtNum(Math.max(800, v.rpm))} unit="rpm" sub=""/>
-            <KPI label="Motor ligado" icon="clock" value={v.motorOnH} unit="h" sub="7 dias"/>
-            <KPI label="Motor desligado" icon="clock" value={v.motorOffH} unit="h" sub="7 dias"/>
-            <KPI label="Parado c/ motor ligado" icon="idle" value={v.idleH} unit="h" sub={`${((n(v.idleH)/Math.max(n(v.motorOnH), 1))*100).toFixed(0)}% do tempo`}/>
+            <KPI label="RPM médio" icon="gauge" value={fmtNum(Math.max(800, v.rpm))} unit="rpm" sub=""
+                 hint="RPM médio do período quando disponível; se não houver relatório, usa a última leitura conhecida."/>
+            <KPI label="Motor ligado" icon="clock" value={v.motorOnH} unit="h" sub="7 dias"
+                 hint="Soma do tempo de motor ligado nos relatórios dos últimos 7 dias."/>
+            <KPI label="Motor desligado" icon="clock" value={v.motorOffH} unit="h" sub="7 dias"
+                 hint="Soma do tempo de motor desligado informado nos relatórios dos últimos 7 dias."/>
+            <KPI label="Parado c/ motor ligado" icon="idle" value={v.idleH} unit="h" sub={`${((n(v.idleH)/Math.max(n(v.motorOnH), 1))*100).toFixed(0)}% do tempo`}
+                 hint="Tempo em que o veículo ficou parado com o motor ligado dentro do período."/>
           </div>
 
           <div className="grid cols-2-1">
             <div className="card card-flush">
               <div className="card-header">
-                <h3>Histórico de posições · últimas 24h</h3>
+                <h3>Histórico de posições · últimas 24h <Hint text="Trajeto desenhado com pontos GPS das mensagens recebidas nas últimas 24 horas."/></h3>
                 <span className="meta">
                   <span className="row" style={{gap: 6}}>
                     <span className="dot" style={{background: "var(--brand-blue)"}}/> Rota
@@ -209,7 +219,7 @@ export const VehicleDetail = ({ data, plate, token, onBack, onGoToVehicle }) => 
 
             <div className="card card-flush">
               <div className="card-header">
-                <h3>Linha do tempo</h3>
+                <h3>Linha do tempo <Hint text="Eventos recentes do veículo, ordenados do mais novo para o mais antigo."/></h3>
                 <span className="meta">{timeline.length} eventos</span>
               </div>
               <div className="card-body" style={{maxHeight: 360, overflow: "auto"}}>
@@ -229,7 +239,7 @@ export const VehicleDetail = ({ data, plate, token, onBack, onGoToVehicle }) => 
           <div className="grid cols-2-1">
             <div className="card">
               <div className="section-head">
-                <h2>Alertas recentes · 7 dias</h2>
+                <h2>Alertas recentes · 7 dias <Hint text="Alertas deste veículo dentro dos últimos 7 dias, filtrados a partir da lista de eventos carregada."/></h2>
                 <a className="link muted">Ver todos <Icon name="arrow-right" size={11}/></a>
               </div>
               <table className="tbl">
@@ -327,7 +337,7 @@ export const VehicleDetail = ({ data, plate, token, onBack, onGoToVehicle }) => 
             </div>
           </div>
           <div className="card">
-            <div className="section-head"><h2>Distribuição do tempo</h2></div>
+            <div className="section-head"><h2>Distribuição do tempo <Hint text="Divide o tempo do período entre em movimento, parado com motor ligado e motor desligado."/></h2></div>
             <div className="row" style={{gap: 16, alignItems: "center"}}>
               <div className="donut" style={{["--p"]: Math.round((n(v.motorOnH)-n(v.idleH))/Math.max(n(v.motorOnH), 1)*100), ["--c"]: "var(--text)"}}>
                 <div className="donut-val">{Math.round((n(v.motorOnH)-n(v.idleH))/Math.max(n(v.motorOnH), 1)*100)}%</div>

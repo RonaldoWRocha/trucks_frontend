@@ -1,5 +1,5 @@
 import { EMPTY_DATA } from "../live-data";
-import { BarChart, Icon, KPI, MiniBar, Plate, fmtNum } from "../components";
+import { BarChart, Hint, Icon, KPI, MiniBar, Plate, fmtNum } from "../components";
 
 // Relatorios de Desempenho - Norte Telemetria
 export const Reports = ({ data, onGoToVehicle }) => {
@@ -25,17 +25,21 @@ export const Reports = ({ data, onGoToVehicle }) => {
       </div>
 
       <div className="grid cols-4" style={{marginBottom: 16}}>
-        <KPI label="Distância total" icon="chart" value={fmtNum(totalKm)} unit="km"/>
+        <KPI label="Distância total" icon="chart" value={fmtNum(totalKm)} unit="km"
+             hint="Soma da distância registrada nos relatórios de telemetria dos últimos 7 dias."/>
         <KPI label="Velocidade média" icon="speedometer" value={avgSpeed} unit="km/h"
-             delta="estável" deltaDir="flat"/>
-        <KPI label="Consumo médio" icon="fuel" value={avgFuel} unit="km/l"/>
-        <KPI label="Motor ligado parado" icon="idle" value={totalIdle} unit="h"/>
+             delta="estável" deltaDir="flat"
+             hint="Média das velocidades médias informadas nos relatórios de telemetria do período."/>
+        <KPI label="Consumo médio" icon="fuel" value={avgFuel} unit="km/l"
+             hint="Média do consumo informado nos relatórios de telemetria dos últimos 7 dias."/>
+        <KPI label="Motor ligado parado" icon="idle" value={totalIdle} unit="h"
+             hint="Soma das horas de motor ligado parado no período de 7 dias."/>
       </div>
 
       <div className="grid cols-2" style={{marginBottom: 16}}>
         <div className="card">
           <div className="section-head">
-            <h2>Distância por veículo · 7 dias</h2>
+            <h2>Distância por veículo · 7 dias <Hint text="Ordena os veículos pela distância total somada no período de 7 dias."/></h2>
             <span className="muted num" style={{fontSize: 11.5}}>{fleet.length} veículos</span>
           </div>
           <BarChart rows={[...fleet]
@@ -45,7 +49,7 @@ export const Reports = ({ data, onGoToVehicle }) => {
         </div>
         <div className="card">
           <div className="section-head">
-            <h2>Distribuição da operação · frota</h2>
+            <h2>Distribuição da operação · frota <Hint text="Compara horas em movimento, parado com motor ligado e motor desligado, somadas no período dos relatórios."/></h2>
             <span className="muted" style={{fontSize: 11.5}}>tempo total</span>
           </div>
           {(() => {
@@ -95,7 +99,7 @@ export const Reports = ({ data, onGoToVehicle }) => {
       <div className="grid cols-2" style={{marginBottom: 16}}>
         <div className="card card-flush">
           <div className="card-header">
-            <h3>Mais eficientes · consumo</h3>
+            <h3>Mais eficientes · consumo <Hint text="Veículos com maior km/l médio no período analisado."/></h3>
             <span className="meta">km/l</span>
           </div>
           <table className="tbl">
@@ -116,7 +120,7 @@ export const Reports = ({ data, onGoToVehicle }) => {
 
         <div className="card card-flush">
           <div className="card-header">
-            <h3>Menos eficientes · consumo</h3>
+            <h3>Menos eficientes · consumo <Hint text="Veículos com menor km/l médio no período analisado."/></h3>
             <span className="meta">km/l</span>
           </div>
           <table className="tbl">
@@ -138,7 +142,7 @@ export const Reports = ({ data, onGoToVehicle }) => {
 
       <div className="card card-flush">
         <div className="card-header">
-          <h3>Desempenho por veículo · 7 dias</h3>
+          <h3>Desempenho por veículo · 7 dias <Hint text="Tabela consolidada por veículo usando os agregados de telemetria dos últimos 7 dias."/></h3>
           <span className="meta">{fleet.length} veículos</span>
         </div>
         <table className="tbl">

@@ -1,5 +1,5 @@
 import { EMPTY_DATA } from "../live-data";
-import { Icon, KPI, Plate, fmtNum } from "../components";
+import { Hint, Icon, KPI, Plate, fmtNum } from "../components";
 
 // Saude da Integracao - Norte Telemetria
 export const Integration = ({ data }) => {
@@ -29,17 +29,21 @@ export const Integration = ({ data }) => {
 
       <div className="grid cols-4" style={{marginBottom: 16}}>
         <KPI label="Status geral" icon="plug" value="Operacional"
-             sub="1 job com timeout"/>
-        <KPI label="Registros lidos · última execução" icon="chart" value={fmtNum(totalRead)}/>
+             sub="1 job com timeout"
+             hint="Resumo operacional dos jobs de integração configurados para o cliente."/>
+        <KPI label="Registros lidos · última execução" icon="chart" value={fmtNum(totalRead)}
+             hint="Soma de inseridos e ignorados reportada na última execução registrada de cada job."/>
         <KPI label="Registros inseridos" icon="check" value={fmtNum(totalIns)}
-             sub={`${successRate.toFixed(1)}% taxa de sucesso`}/>
+             sub={`${successRate.toFixed(1)}% taxa de sucesso`}
+             hint="Quantidade de registros novos gravados na última execução dos jobs. Taxa = inseridos / lidos."/>
         <KPI label="Erros registrados" icon="alert" value={totalErr}
-             sub={`DLQ: ${D.PAYLOAD_ERRORS.length} itens`}/>
+             sub={`DLQ: ${D.PAYLOAD_ERRORS.length} itens`}
+             hint="Jobs com erro na última execução e payloads registrados na fila de erro."/>
       </div>
 
       <div className="card card-flush" style={{marginBottom: 16}}>
         <div className="card-header">
-          <h3>Jobs de sincronização</h3>
+          <h3>Jobs de sincronização <Hint text="Lista das rotinas que buscam payloads na Trucks e importam para o banco do cliente."/></h3>
           <span className="meta">4 jobs · scheduler ativo</span>
         </div>
         <table className="tbl">
@@ -77,7 +81,7 @@ export const Integration = ({ data }) => {
       <div className="grid cols-2-1" style={{marginBottom: 16}}>
         <div className="card card-flush">
           <div className="card-header">
-            <h3>Payloads em erro · DLQ</h3>
+            <h3>Payloads em erro · DLQ <Hint text="Payloads que falharam no parse ou importação e precisam de revisão."/></h3>
             <div className="row" style={{gap: 6}}>
               <span className="meta">{D.PAYLOAD_ERRORS.length} itens</span>
             </div>
@@ -112,7 +116,7 @@ export const Integration = ({ data }) => {
 
         <div className="col" style={{gap: 16}}>
           <div className="card">
-            <div className="section-head"><h2>Pendentes na fila</h2></div>
+            <div className="section-head"><h2>Pendentes na fila <Hint text="Itens nas tabelas temporárias aguardando processamento, agrupados por job e status."/></h2></div>
             <div className="row between" style={{marginBottom: 10}}>
               <span style={{fontSize: 24, fontWeight: 500}} className="num">{fmtNum(totalQueue)}</span>
               <span className="muted" style={{fontSize: 12}}>itens aguardando processamento</span>
@@ -129,7 +133,7 @@ export const Integration = ({ data }) => {
           </div>
 
           <div className="card">
-            <div className="section-head"><h2>Taxa de sucesso · última execução</h2></div>
+            <div className="section-head"><h2>Taxa de sucesso · última execução <Hint text="Percentual de registros inseridos sobre registros lidos na última execução dos jobs."/></h2></div>
             <div className="row" style={{gap: 14, alignItems: "center"}}>
               <div className="donut" style={{["--p"]: successRate, ["--c"]: "var(--ok)", ["--size"]: "76px", ["--thick"]: "9px"}}>
                 <div className="donut-val" style={{fontSize: 13}}>{successRate.toFixed(1)}%</div>

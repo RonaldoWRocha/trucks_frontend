@@ -1,5 +1,5 @@
 import { EMPTY_DATA } from "../live-data";
-import { BarChart, Icon, KPI, MiniBar, Plate, fmtNum } from "../components";
+import { BarChart, Hint, Icon, KPI, MiniBar, Plate, fmtNum } from "../components";
 
 // Dashboard screen - Norte Telemetria
 export const Dashboard = ({ data, onGoToVehicle, onNavigate }) => {
@@ -48,27 +48,35 @@ export const Dashboard = ({ data, onGoToVehicle, onNavigate }) => {
 
       {/* KPI Row */}
       <div className="grid cols-4" style={{marginBottom: 16}}>
-        <KPI label="Veículos monitorados" icon="truck" value={fleet.length}/>
+        <KPI label="Veículos monitorados" icon="truck" value={fleet.length}
+             hint="Total de veículos cadastrados no cliente selecionado."/>
         <KPI label="Comunicando agora" icon="wifi" value={online + atrasados}
              delta={`${online} online · ${atrasados} atrasados`}
-             deltaDir="flat"/>
-        <KPI label="Sem comunicação" icon="wifi-off" value={semComm}/>
+             deltaDir="flat"
+             hint="Veículos com última mensagem recente. Online: até 10 min; atrasado: entre 10 e 90 min."/>
+        <KPI label="Sem comunicação" icon="wifi-off" value={semComm}
+             hint="Veículos sem mensagem ou com última comunicação há mais de 90 minutos."/>
         <KPI label="Alertas em 24h" icon="alert" value={totalAlerts24h}
-             delta={`${criticos24h} críticos`} deltaDir="down"/>
+             delta={`${criticos24h} críticos`} deltaDir="down"
+             hint="Total de ocorrências detectadas nas últimas 24 horas. Eventos de estado, como portas, contam só quando mudam de fechado para aberto."/>
       </div>
 
       <div className="grid cols-4" style={{marginBottom: 16}}>
-        <KPI label="Km rodados (7 dias)" icon="chart" value={fmtNum(km7d)} unit="km"/>
-        <KPI label="Consumo médio" icon="fuel" value={fuelAvg} unit="km/l"/>
-        <KPI label="Motor ligado parado" icon="idle" value={idleAvg} unit="h/veíc"/>
-        <KPI label="Jobs de integração" icon="plug" value={D.JOBS.length}/>
+        <KPI label="Km rodados (7 dias)" icon="chart" value={fmtNum(km7d)} unit="km"
+             hint="Soma da distância dos relatórios de telemetria nos últimos 7 dias calendário disponíveis."/>
+        <KPI label="Consumo médio" icon="fuel" value={fuelAvg} unit="km/l"
+             hint="Média de consumo dos relatórios de telemetria dentro da janela de 7 dias."/>
+        <KPI label="Motor ligado parado" icon="idle" value={idleAvg} unit="h/veíc"
+             hint="Média por veículo das horas em que o motor ficou ligado com o veículo parado nos últimos 7 dias."/>
+        <KPI label="Jobs de integração" icon="plug" value={D.JOBS.length}
+             hint="Quantidade de rotinas de sincronização configuradas para buscar e importar dados."/>
       </div>
 
       <div className="grid cols-2-1" style={{marginBottom: 16}}>
         {/* Alerts by type */}
         <div className="card card-flush">
           <div className="card-header">
-            <h3>Alertas por tipo · últimas 24h</h3>
+            <h3>Alertas por tipo · últimas 24h <Hint text="Agrupa ocorrências detectadas nas últimas 24 horas. Flags contínuos contam por transição, não por mensagem repetida."/></h3>
             <span className="meta num">{totalAlerts24h} eventos</span>
           </div>
           <div className="card-body">
@@ -82,7 +90,7 @@ export const Dashboard = ({ data, onGoToVehicle, onNavigate }) => {
         {/* Ranking ocorrências */}
         <div className="card card-flush">
           <div className="card-header">
-            <h3>Mais ocorrências · 7 dias</h3>
+            <h3>Mais ocorrências · 7 dias <Hint text="Ranking por veículo com base na quantidade de ocorrências detectadas nos últimos 7 dias."/></h3>
             <a className="link muted" onClick={() => onNavigate("alerts")}>Ver alertas <Icon name="arrow-right" size={11}/></a>
           </div>
           <table className="tbl">
@@ -108,7 +116,7 @@ export const Dashboard = ({ data, onGoToVehicle, onNavigate }) => {
       <div className="grid cols-2-1">
         <div className="card card-flush">
           <div className="card-header">
-            <h3>Eventos críticos recentes</h3>
+            <h3>Eventos críticos recentes <Hint text="Últimos eventos críticos carregados na lista de alertas. Inclui sirene, bloqueio e desengate."/></h3>
             <a className="link muted" onClick={() => onNavigate("alerts")}>Ver todos <Icon name="arrow-right" size={11}/></a>
           </div>
           <table className="tbl">
@@ -138,7 +146,7 @@ export const Dashboard = ({ data, onGoToVehicle, onNavigate }) => {
         <div className="col" style={{gap: 16}}>
           <div className="card fleet-activity-card">
             <div className="section-head">
-              <h2>Atividade da frota · 7 dias</h2>
+              <h2>Atividade da frota · 7 dias <Hint text="Distância diária vinda dos relatórios de telemetria. Dias sem relatório aparecem como 0 km."/></h2>
               <span className="fleet-activity-legend"><span className="dot"/> Km por dia</span>
             </div>
             <div style={{display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 6, alignItems: "end", height: 84}}>

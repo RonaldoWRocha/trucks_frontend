@@ -93,10 +93,12 @@ export const Alerts = ({ data, onGoToVehicle, initialFilters = {} }) => {
 
       <div className="grid cols-4" style={{marginBottom: 16}}>
         <KPI label="Total de alertas" icon="alert" value={fmtNum(inPeriod.length)}
-             sub={`${total} após filtros`}/>
+             sub={`${total} após filtros`}
+             hint="Quantidade de eventos dentro do período selecionado. O número menor mostra quantos restaram após os filtros da tela."/>
         <KPI label="Críticos" icon="alarm" value={crit}
              delta={`${((crit/Math.max(1,inPeriod.length))*100).toFixed(0)}%`} deltaDir="down"
-             sub="dos eventos"/>
+             sub="dos eventos"
+             hint="Eventos classificados como críticos, como sirene, veículo bloqueado ou desengate."/>
       </div>
 
       <div className="tbl-wrap">
