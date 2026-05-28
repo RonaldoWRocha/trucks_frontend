@@ -68,6 +68,7 @@ const App = () => {
     if (typeof window === "undefined") return "comfortable";
     try { return localStorage.getItem("nt:density") || "comfortable"; } catch (e) { return "comfortable"; }
   });
+  const [clientSearch, setClientSearch] = useState("");
 
   const toggleSidebar = () => {
     setSidebarCollapsed(v => {
@@ -223,6 +224,16 @@ const App = () => {
     !credentialStatus.configured;
 
   const onNavigate = (screen, params) => go(screen, params ? { params } : {});
+  const environmentQuery = clientSearch.trim().toLowerCase();
+  const environmentClients = Array.isArray(auth.session?.clients)
+    ? auth.session.clients.filter((client) => {
+        if (!environmentQuery) return true;
+        return [client.name, client.slug, client.schemaName]
+          .filter(Boolean)
+          .some((value) => String(value).toLowerCase().includes(environmentQuery));
+      })
+    : [];
+  const currentEnvironmentVisible = environmentClients.some((client) => String(client.id) === String(auth.session?.client?.id));
 
   let body = null;
   switch (route.screen) {
@@ -342,16 +353,30 @@ const App = () => {
           <div className="topbar-spacer"/>
 
           {auth.session?.user?.isPlatformAdmin && Array.isArray(auth.session?.clients) && (
-            <select
-              className="topbar-select"
-              value={auth.session.client.id}
-              onChange={(event) => switchClient(event.target.value)}
-              title="Ambiente"
-            >
-              {auth.session.clients.map((client) => (
-                <option key={client.id} value={client.id}>{client.name}</option>
-              ))}
-            </select>
+            <div className="environment-picker">
+              <input
+                value={clientSearch}
+                onChange={(event) => setClientSearch(event.target.value)}
+                placeholder="Buscar ambiente"
+                title="Buscar por cliente, slug ou schema"
+              />
+              <select
+                className="topbar-select"
+                value={auth.session.client.id}
+                onChange={(event) => {
+                  setClientSearch("");
+                  switchClient(event.target.value);
+                }}
+                title="Ambiente"
+              >
+                {!currentEnvironmentVisible && (
+                  <option value={auth.session.client.id}>{auth.session.client.name}</option>
+                )}
+                {environmentClients.map((client) => (
+                  <option key={client.id} value={client.id}>{client.name}</option>
+                ))}
+              </select>
+            </div>
           )}
 
           <button className="btn ghost sm" style={{ marginRight: 10 }} onClick={cycleTheme} title="Alternar tema">
@@ -1096,6 +1121,27 @@ const UsersSettings = ({ token, onBack }) => {
     }
   };
 
+  const updateUserPassword = async (user) => {
+    const password = String(user.pendingPassword || "");
+    setError("");
+    setMessage("");
+    if (password.length < 6) {
+      setError("Informe uma senha com pelo menos 6 caracteres.");
+      return;
+    }
+    try {
+      await apiJson(`/api/users/${user.id}/password`, {
+        method: "PATCH",
+        token,
+        body: { password },
+      });
+      setUsers((current) => current.map((item) => (item.id === user.id ? { ...item, pendingPassword: "" } : item)));
+      setMessage("Senha atualizada.");
+    } catch (e) {
+      setError("Nao foi possivel atualizar a senha desse usuario.");
+    }
+  };
+
   const deleteUser = async (user) => {
     if (!window.confirm(`Excluir o acesso de ${user.name}?`)) return;
     setError("");
@@ -1168,6 +1214,7 @@ const UsersSettings = ({ token, onBack }) => {
               <th>Email</th>
               <th>Ambiente</th>
               <th>Perfil</th>
+              <th>Nova senha</th>
               <th>Status</th>
               <th style={{textAlign: "right"}}>Ações</th>
             </tr>
@@ -1212,17 +1259,28 @@ const UsersSettings = ({ token, onBack }) => {
                     <option value="owner">Dono do ambiente</option>
                   </select>
                 </td>
+                <td>
+                  <input
+                    className="table-input"
+                    type="password"
+                    value={user.pendingPassword || ""}
+                    placeholder="Nova senha"
+                    autoComplete="new-password"
+                    onChange={(event) => patchUserRow(index, { pendingPassword: event.target.value })}
+                  />
+                </td>
                 <td>{user.enabled ? <span className="badge ok">Ativo</span> : <span className="badge">Inativo</span>}</td>
                 <td style={{textAlign: "right"}}>
                   <div className="row" style={{gap: 6, justifyContent: "flex-end"}}>
                     <button className="btn sm" type="button" onClick={() => updateUserRole(user)}>Salvar</button>
+                    <button className="btn sm" type="button" onClick={() => updateUserPassword(user)}>Senha</button>
                     <button className="btn ghost sm danger" type="button" onClick={() => deleteUser(user)}>Excluir</button>
                   </div>
                 </td>
               </tr>
             ))}
             {!loading && users.length === 0 && (
-              <tr><td colSpan={6} className="muted">Nenhum usuário cadastrado.</td></tr>
+              <tr><td colSpan={7} className="muted">Nenhum usuário cadastrado.</td></tr>
             )}
           </tbody>
         </table>

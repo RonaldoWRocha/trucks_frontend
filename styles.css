@@ -418,6 +418,28 @@ input, select, textarea { font: inherit; color: inherit; }
   background: var(--ok);
   box-shadow: 0 0 0 3px color-mix(in oklab, var(--ok) 18%, transparent);
 }
+.environment-picker {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-right: 10px;
+}
+.environment-picker input {
+  width: 170px;
+  height: 30px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface-2);
+  color: var(--text);
+  padding: 0 10px;
+  font: inherit;
+  font-size: 12px;
+  outline: none;
+}
+.environment-picker input:focus {
+  border-color: var(--border-strong);
+  background: var(--surface);
+}
 .icon-btn {
   width: 30px; height: 30px;
   display: grid; place-items: center;
@@ -1180,13 +1202,27 @@ tr.row-ok td:first-child { box-shadow: inset 3px 0 0 var(--ok); }
 .topbar-select {
   width: 190px;
   height: 30px;
-  margin-right: 10px;
   font-size: 12px;
 }
 .table-select {
   width: 180px;
   height: 30px;
   font-size: 12px;
+}
+.table-input {
+  width: 150px;
+  height: 30px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface-2);
+  color: var(--text);
+  padding: 0 9px;
+  font: inherit;
+  font-size: 12px;
+}
+.table-input:focus {
+  outline: 2px solid var(--accent-border);
+  border-color: var(--brand-blue);
 }
 .form-field input:focus {
   outline: 2px solid var(--accent-border);
