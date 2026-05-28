@@ -189,7 +189,7 @@ export const VehicleDetail = ({ data, plate, token, onBack, onGoToVehicle }) => 
           <div className="grid cols-5">
             <KPI label="RPM médio" icon="gauge" value={fmtNum(Math.max(800, v.rpm))} unit="rpm" sub=""/>
             <KPI label="Motor ligado" icon="clock" value={v.motorOnH} unit="h" sub="7 dias"/>
-            <KPI label="Motor desligado" icon="clock" value={(168 - n(v.motorOnH)).toFixed(1)} unit="h" sub="7 dias"/>
+            <KPI label="Motor desligado" icon="clock" value={v.motorOffH} unit="h" sub="7 dias"/>
             <KPI label="Parado c/ motor ligado" icon="idle" value={v.idleH} unit="h" sub={`${((n(v.idleH)/Math.max(n(v.motorOnH), 1))*100).toFixed(0)}% do tempo`}/>
           </div>
 
@@ -335,7 +335,7 @@ export const VehicleDetail = ({ data, plate, token, onBack, onGoToVehicle }) => 
               <div className="col" style={{gap: 8, fontSize: 12.5, flex: 1}}>
                 <div className="row between"><span><span className="dot" style={{background: "var(--brand-navy)"}}/> Em movimento</span><b className="num">{(n(v.motorOnH)-n(v.idleH)).toFixed(1)}h</b></div>
                 <div className="row between"><span><span className="dot" style={{background: "var(--warn)"}}/> Parado motor ligado</span><b className="num">{v.idleH}h</b></div>
-                <div className="row between"><span><span className="dot" style={{background: "var(--surface-3)", border: "1px solid var(--border)"}}/> Motor desligado</span><b className="num">{(168-n(v.motorOnH)).toFixed(1)}h</b></div>
+                <div className="row between"><span><span className="dot" style={{background: "var(--surface-3)", border: "1px solid var(--border)"}}/> Motor desligado</span><b className="num">{v.motorOffH}h</b></div>
               </div>
             </div>
           </div>

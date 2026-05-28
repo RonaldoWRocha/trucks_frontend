@@ -51,7 +51,7 @@ export const Reports = ({ data, onGoToVehicle }) => {
           {(() => {
             const moving = fleet.reduce((s, v) => s + (n(v.motorOnH) - n(v.idleH)), 0);
             const idle = fleet.reduce((s, v) => s + n(v.idleH), 0);
-            const off = fleet.reduce((s, v) => s + (168 - n(v.motorOnH)), 0);
+            const off = fleet.reduce((s, v) => s + n(v.motorOffH), 0);
             const total = moving + idle + off;
             return (
               <div className="col" style={{gap: 16, marginTop: 8}}>

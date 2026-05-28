@@ -181,6 +181,7 @@ function mapVehicle(v) {
     maxSpeed: Number(v.maxSpeed || 0),
     distance7d: Number(v.distance7d || 0),
     motorOnH: round(Number(v.motorOnH || 0), 1),
+    motorOffH: round(Number(v.motorOffH || 0), 1),
     idleH: round(Number(v.idleH || 0), 1),
     alerts7d: Number(v.alerts7d || 0),
   };
