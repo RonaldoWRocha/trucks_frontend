@@ -12,6 +12,7 @@ export const EMPTY_DATA = {
   JOBS: [],
   PAYLOAD_ERRORS: [],
   RECENT_LOG: [],
+  ALERT_STATS: { total24h: 0, critical24h: 0 },
   TOP_EVENT_TYPES: [],
   DAILY: [],
   REPORT_SUMMARY: {},
@@ -132,6 +133,10 @@ function buildData({ vehicles, alerts, dashboard, integration, reportSummary }) 
     JOBS: jobs,
     PAYLOAD_ERRORS: payloadErrors,
     RECENT_LOG: buildRecentLog(integration),
+    ALERT_STATS: {
+      total24h: Number(dashboard.alerts?.total24h || 0),
+      critical24h: Number(dashboard.alerts?.critical24h || 0),
+    },
     TOP_EVENT_TYPES: topEventTypes,
     DAILY: daily,
     REPORT_SUMMARY: reportSummary,

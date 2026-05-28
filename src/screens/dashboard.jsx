@@ -20,8 +20,9 @@ export const Dashboard = ({ data, onGoToVehicle, onNavigate }) => {
   const online = fleet.filter(v => v.status === "online").length;
   const atrasados = fleet.filter(v => v.status === "atrasado").length;
   const semComm = fleet.filter(v => v.status === "sem-comm").length;
-  const totalAlerts24h = D.ALERTS.filter(a => a.minAgo <= 1440).length;
-  const criticos24h = D.ALERTS.filter(a => a.minAgo <= 1440 && a.sev === "crit").length;
+  const chartAlerts24h = D.TOP_EVENT_TYPES.reduce((s, t) => s + n(t.count), 0);
+  const totalAlerts24h = n(D.ALERT_STATS?.total24h) || chartAlerts24h;
+  const criticos24h = n(D.ALERT_STATS?.critical24h);
   const km7d = D.DAILY.reduce((s, d) => s + n(d.km), 0);
   const fuelAvg = (D.DAILY.reduce((s, d) => s + n(d.fuel), 0) / Math.max(D.DAILY.length, 1)).toFixed(1);
   const idleAvg = (fleet.reduce((s, v) => s + n(v.idleH), 0) / Math.max(fleet.length, 1)).toFixed(1);
