@@ -53,7 +53,7 @@ const App = () => {
       return { loading: true, token: "", session: null, needsSetup: false };
     }
   });
-  const [credentialStatus, setCredentialStatus] = useState({ loading: true, checkedClientId: null, configured: true, credential: null });
+  const [credentialStatus, setCredentialStatus] = useState({ loading: true, checkedClientId: null, configured: true, enabled: true, serviceEnabled: true, credential: null });
   const [dataRefreshKey, setDataRefreshKey] = useState(0);
   const { data: D, loading, error } = useTelemetryData(auth.token, auth.session?.client?.id, dataRefreshKey);
   const [route, setRouteState] = useState(readRoute());
@@ -180,7 +180,7 @@ const App = () => {
         ...current,
         session: { user: next.user, client: next.client, clients: next.clients },
       }));
-      setCredentialStatus({ loading: true, checkedClientId: null, configured: true, credential: null });
+      setCredentialStatus({ loading: true, checkedClientId: null, configured: true, enabled: true, serviceEnabled: true, credential: null });
       setDataRefreshKey((current) => current + 1);
     } catch (e) {
       console.error(e);
@@ -219,7 +219,7 @@ const App = () => {
     !["owner", "admin"].includes(currentClient?.role) &&
     !credentialStatus.loading &&
     credentialStatus.checkedClientId === currentClient?.id &&
-    !credentialStatus.configured;
+    credentialStatus.configured === false;
 
   const onNavigate = (screen, params) => go(screen, params ? { params } : {});
 
@@ -840,7 +840,7 @@ const SettingsScreen = ({ theme, setTheme, density, setDensity, token, credentia
           {
             t: "Integração Trucks",
             d: credentialStatus.configured
-              ? `${credentialStatus.credential?.login || "Credencial ativa"} · configurada`
+              ? `${credentialStatus.credential?.login || "Credencial cadastrada"} - ${credentialStatus.serviceEnabled === false || credentialStatus.enabled === false ? "desabilitada" : "ativa"}`
               : "Credenciais pendentes",
             i: "plug",
             onClick: () => setSettingsView("trucks"),
