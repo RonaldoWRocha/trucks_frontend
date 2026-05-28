@@ -411,6 +411,28 @@ const LoginScreen = ({ needsSetup, onSuccess }) => {
   return (
     <div className="auth-shell">
       <form className="auth-panel" onSubmit={submit}>
+        <div className="auth-brand-lockup">
+          <div className="auth-brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 28 28" xmlns="http://www.w3.org/2000/svg">
+              <path d="M5.5 23 L5.5 8.5 L18 21.5 L18 11.5"
+                    fill="none" stroke="#141936"
+                    strokeWidth="3.8" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M5.5 21 L5.5 10"
+                    fill="none" stroke="#ffffff"
+                    strokeWidth="0.7" strokeDasharray="1.3 1.3" strokeLinecap="round"/>
+              <path d="M18 11.5 L22.5 6.5"
+                    fill="none" stroke="#4f7fab"
+                    strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M22.5 6.5 L19.5 6.5 L22.5 6.5 L22.5 9.5"
+                    fill="none" stroke="#4f7fab"
+                    strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </div>
+          <div>
+            <div className="auth-brand-name">Norte</div>
+            <div className="auth-brand-tag">Gestão de frota</div>
+          </div>
+        </div>
         <div>
           <h1>{mode === "setup" ? "Primeiro acesso" : "Entrar"}</h1>
           <div className="sub">{mode === "setup" ? "Crie o admin e vincule o cliente inicial" : "Acesse o painel Norte Telemetria"}</div>
@@ -425,7 +447,9 @@ const LoginScreen = ({ needsSetup, onSuccess }) => {
         <label className="form-field">Email<input type="email" {...field("email")} required autoComplete="email"/></label>
         <label className="form-field">Senha<input type="password" {...field("password")} required autoComplete={mode === "setup" ? "new-password" : "current-password"}/></label>
         {error && <div className="form-error">{error}</div>}
-        <button className="btn primary" type="submit" disabled={saving}>{saving ? "Entrando..." : mode === "setup" ? "Criar acesso" : "Entrar"}</button>
+        <button className="btn primary auth-submit" type="submit" disabled={saving}>
+          {saving ? "Entrando..." : mode === "setup" ? "Criar acesso" : "Entrar"}
+        </button>
       </form>
     </div>
   );
