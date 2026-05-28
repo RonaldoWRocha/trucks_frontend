@@ -22,7 +22,7 @@ export const EMPTY_DATA = {
   vehicleRoute: () => [],
 };
 
-export function useTelemetryData(token, clientId) {
+export function useTelemetryData(token, clientId, refreshKey = 0) {
   const [state, setState] = useState({
     data: EMPTY_DATA,
     loading: true,
@@ -37,6 +37,7 @@ export function useTelemetryData(token, clientId) {
         setState({ data: EMPTY_DATA, loading: false, error: null });
         return;
       }
+      setState((current) => ({ ...current, loading: true, error: null }));
       try {
         const [vehicles, alerts, dashboard, integration, reportSummary] = await Promise.all([
           getJson("/api/vehicles?limit=500", token),
@@ -68,7 +69,7 @@ export function useTelemetryData(token, clientId) {
       cancelled = true;
       window.clearInterval(id);
     };
-  }, [token, clientId]);
+  }, [token, clientId, refreshKey]);
 
   return useMemo(() => state, [state]);
 }

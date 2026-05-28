@@ -54,7 +54,8 @@ const App = () => {
     }
   });
   const [credentialStatus, setCredentialStatus] = useState({ loading: false, configured: true, credential: null });
-  const { data: D, loading, error } = useTelemetryData(auth.token, auth.session?.client?.id);
+  const [dataRefreshKey, setDataRefreshKey] = useState(0);
+  const { data: D, loading, error } = useTelemetryData(auth.token, auth.session?.client?.id, dataRefreshKey);
   const [route, setRouteState] = useState(readRoute());
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
     try { return localStorage.getItem("nt:sidebar") === "collapsed"; } catch (e) { return false; }
@@ -180,6 +181,8 @@ const App = () => {
         ...current,
         session: { user: next.user, client: next.client, clients: next.clients },
       }));
+      setCredentialStatus({ loading: false, configured: true, credential: null });
+      setDataRefreshKey((current) => current + 1);
     } catch (e) {
       console.error(e);
     }
