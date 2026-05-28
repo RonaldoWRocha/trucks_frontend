@@ -271,13 +271,7 @@ const App = () => {
     <div className={`app-shell ${sidebarCollapsed ? "sidebar-collapsed" : ""}`} data-screen-label={activeNav.title}>
       <aside className="sidebar">
         <div className="sidebar-brand">
-          <div className="brand-mark" title="Norte — Gestão de Frota Inteligente">
-            <img className="brand-icon" src="/icon.svg" alt="" aria-hidden="true" />
-          </div>
-          <div className="brand-name">
-            Norte
-            <span className="tag">Gestão de frota</span>
-          </div>
+          <img className="brand-logo" src="/norte-logo.png" alt="Norte - Gestao de frota" />
         </div>
 
         <div className="nav-section">
