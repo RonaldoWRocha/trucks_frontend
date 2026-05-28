@@ -1131,33 +1131,15 @@ tr.row-ok td:first-child { box-shadow: inset 3px 0 0 var(--ok); }
 .auth-brand-lockup {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 2px;
+  justify-content: center;
+  margin-bottom: 6px;
 }
-.auth-brand-mark {
-  width: 42px;
-  height: 42px;
-  border-radius: 8px;
-  display: grid;
-  place-items: center;
-  background: #ffffff;
-  border: 1px solid var(--border);
-  box-shadow: 0 8px 24px rgba(0,0,0,0.22);
-}
-.auth-brand-mark svg {
-  width: 30px;
-  height: 30px;
-}
-.auth-brand-name {
-  font-size: 16px;
-  font-weight: 700;
-  color: var(--text);
-  line-height: 1.1;
-}
-.auth-brand-tag {
-  margin-top: 2px;
-  color: var(--text-3);
-  font-size: 12px;
+.auth-brand-logo {
+  width: min(250px, 100%);
+  height: auto;
+  display: block;
+  border-radius: 6px;
+  background: #f7f7f8;
 }
 .auth-panel h1 {
   margin: 0 0 4px;

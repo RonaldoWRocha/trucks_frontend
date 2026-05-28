@@ -412,26 +412,7 @@ const LoginScreen = ({ needsSetup, onSuccess }) => {
     <div className="auth-shell">
       <form className="auth-panel" onSubmit={submit}>
         <div className="auth-brand-lockup">
-          <div className="auth-brand-mark" aria-hidden="true">
-            <svg viewBox="0 0 28 28" xmlns="http://www.w3.org/2000/svg">
-              <path d="M5.5 23 L5.5 8.5 L18 21.5 L18 11.5"
-                    fill="none" stroke="#141936"
-                    strokeWidth="3.8" strokeLinecap="round" strokeLinejoin="round"/>
-              <path d="M5.5 21 L5.5 10"
-                    fill="none" stroke="#ffffff"
-                    strokeWidth="0.7" strokeDasharray="1.3 1.3" strokeLinecap="round"/>
-              <path d="M18 11.5 L22.5 6.5"
-                    fill="none" stroke="#4f7fab"
-                    strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
-              <path d="M22.5 6.5 L19.5 6.5 L22.5 6.5 L22.5 9.5"
-                    fill="none" stroke="#4f7fab"
-                    strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </div>
-          <div>
-            <div className="auth-brand-name">Norte</div>
-            <div className="auth-brand-tag">Gestão de frota</div>
-          </div>
+          <img className="auth-brand-logo" src="/norte-logo.jpeg" alt="Norte - Gestão de Frota Inteligente"/>
         </div>
         <div>
           <h1>{mode === "setup" ? "Primeiro acesso" : "Entrar"}</h1>
