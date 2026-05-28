@@ -211,6 +211,10 @@ const App = () => {
 
   const activeNav = NAV.find(n => n.id === route.screen) || NAV.find(n => n.id === "vehicles");
   const onlineCount = D.FLEET.filter(v => v.status === "online").length;
+  const currentUser = auth.session?.user;
+  const currentClient = auth.session?.client;
+  const userInitial = (currentUser?.name || currentUser?.email || "N").trim().charAt(0).toUpperCase();
+  const roleLabel = currentUser?.isPlatformAdmin ? "Admin da plataforma" : roleName(currentClient?.role);
 
   const onNavigate = (screen, params) => go(screen, params ? { params } : {});
 
@@ -304,10 +308,10 @@ const App = () => {
         </div>
 
         <div className="sidebar-footer">
-          <div className="avatar">N</div>
+          <div className="avatar">{userInitial}</div>
           <div className="who">
-            <div className="who-name">Norte Telemetria</div>
-            <div className="who-org">Gestão de frota</div>
+            <div className="who-name">{currentUser?.name || "Usuário"}</div>
+            <div className="who-org">{roleLabel}</div>
           </div>
         </div>
       </aside>
@@ -1038,17 +1042,20 @@ const UsersSettings = ({ token, onBack }) => {
         </div>
         <label className="form-field">Senha inicial<input type="password" {...field("password")} required autoComplete="new-password"/></label>
         <div className="grid cols-2" style={{gap: 12}}>
-          <label className="form-field">
-            Ambiente
-            <select className="form-select" {...field("clientId")} required>
-              {clients.map((client) => (
-                <option key={client.id} value={client.id}>{client.name}</option>
-              ))}
-            </select>
-          </label>
+          {form.role !== "platform_admin" && (
+            <label className="form-field">
+              Ambiente
+              <select className="form-select" {...field("clientId")} required>
+                {clients.map((client) => (
+                  <option key={client.id} value={client.id}>{client.name}</option>
+                ))}
+              </select>
+            </label>
+          )}
           <label className="form-field">
             Perfil
             <select className="form-select" {...field("role")}>
+              <option value="platform_admin">Admin da plataforma</option>
               <option value="viewer">Visualizador</option>
               <option value="operator">Operador</option>
               <option value="admin">Admin do ambiente</option>
@@ -1058,7 +1065,7 @@ const UsersSettings = ({ token, onBack }) => {
         </div>
         {message && <div className="form-success">{message}</div>}
         {error && <div className="form-error">{error}</div>}
-        <button className="btn primary" type="submit" disabled={saving || !clients.length}>{saving ? "Criando..." : "Criar usuário"}</button>
+        <button className="btn primary" type="submit" disabled={saving || (form.role !== "platform_admin" && !clients.length)}>{saving ? "Criando..." : "Criar usuário"}</button>
       </form>
 
       <div className="card card-flush">
@@ -1104,6 +1111,15 @@ function slugify(value) {
     .replace(/[\u0300-\u036f]/g, "")
     .replace(/[^a-z0-9_-]+/g, "-")
     .replace(/^-+|-+$/g, "");
+}
+
+function roleName(role) {
+  if (role === "owner") return "Dono do ambiente";
+  if (role === "admin") return "Admin do ambiente";
+  if (role === "operator") return "Operador";
+  if (role === "viewer") return "Visualizador";
+  if (role === "platform_admin") return "Admin da plataforma";
+  return "Usuário";
 }
 
 export default App;
