@@ -412,7 +412,7 @@ const LoginScreen = ({ needsSetup, onSuccess }) => {
     <div className="auth-shell">
       <form className="auth-panel" onSubmit={submit}>
         <div className="auth-brand-lockup">
-          <img className="auth-brand-logo" src="/norte-logo.jpeg" alt="Norte - Gestão de Frota Inteligente"/>
+          <img className="auth-brand-logo" src="/norte-logo.png" alt="Norte - Gestão de Frota Inteligente"/>
         </div>
         <div>
           <h1>{mode === "setup" ? "Primeiro acesso" : "Entrar"}</h1>
