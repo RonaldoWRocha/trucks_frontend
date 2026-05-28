@@ -418,27 +418,89 @@ input, select, textarea { font: inherit; color: inherit; }
   background: var(--ok);
   box-shadow: 0 0 0 3px color-mix(in oklab, var(--ok) 18%, transparent);
 }
-.environment-picker {
-  display: flex;
-  align-items: center;
-  gap: 6px;
+.environment-combobox {
+  position: relative;
+  width: 230px;
   margin-right: 10px;
 }
-.environment-picker input {
-  width: 170px;
+.environment-combobox input {
+  width: 100%;
   height: 30px;
   border: 1px solid var(--border);
   border-radius: 6px;
   background: var(--surface-2);
   color: var(--text);
-  padding: 0 10px;
+  padding: 0 30px 0 10px;
   font: inherit;
   font-size: 12px;
   outline: none;
 }
-.environment-picker input:focus {
+.environment-combobox input:focus {
   border-color: var(--border-strong);
   background: var(--surface);
+}
+.environment-combobox-toggle {
+  position: absolute;
+  right: 4px;
+  top: 4px;
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--text-3);
+  transform: rotate(90deg);
+}
+.environment-combobox-toggle:hover {
+  background: var(--hover);
+  color: var(--text);
+}
+.environment-options {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 30;
+  width: 100%;
+  max-height: 260px;
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  box-shadow: var(--shadow-lg);
+  padding: 4px;
+}
+.environment-option {
+  width: 100%;
+  min-height: 38px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text);
+  padding: 6px 8px;
+  text-align: left;
+}
+.environment-option:hover,
+.environment-option.active {
+  background: var(--hover);
+}
+.environment-option span {
+  font-size: 12.5px;
+  font-weight: 600;
+}
+.environment-option small {
+  font-size: 11px;
+  color: var(--text-3);
+}
+.environment-empty {
+  padding: 9px 8px;
+  font-size: 12px;
+  color: var(--text-3);
 }
 .icon-btn {
   width: 30px; height: 30px;

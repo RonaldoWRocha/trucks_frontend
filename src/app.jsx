@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { apiJson, useTelemetryData } from "./live-data";
 import { Alerts } from "./screens/alerts";
 import { Dashboard } from "./screens/dashboard";
@@ -68,8 +68,6 @@ const App = () => {
     if (typeof window === "undefined") return "comfortable";
     try { return localStorage.getItem("nt:density") || "comfortable"; } catch (e) { return "comfortable"; }
   });
-  const [clientSearch, setClientSearch] = useState("");
-
   const toggleSidebar = () => {
     setSidebarCollapsed(v => {
       const next = !v;
@@ -224,16 +222,6 @@ const App = () => {
     !credentialStatus.configured;
 
   const onNavigate = (screen, params) => go(screen, params ? { params } : {});
-  const environmentQuery = clientSearch.trim().toLowerCase();
-  const environmentClients = Array.isArray(auth.session?.clients)
-    ? auth.session.clients.filter((client) => {
-        if (!environmentQuery) return true;
-        return [client.name, client.slug, client.schemaName]
-          .filter(Boolean)
-          .some((value) => String(value).toLowerCase().includes(environmentQuery));
-      })
-    : [];
-  const currentEnvironmentVisible = environmentClients.some((client) => String(client.id) === String(auth.session?.client?.id));
 
   let body = null;
   switch (route.screen) {
@@ -353,30 +341,11 @@ const App = () => {
           <div className="topbar-spacer"/>
 
           {auth.session?.user?.isPlatformAdmin && Array.isArray(auth.session?.clients) && (
-            <div className="environment-picker">
-              <input
-                value={clientSearch}
-                onChange={(event) => setClientSearch(event.target.value)}
-                placeholder="Buscar ambiente"
-                title="Buscar por cliente, slug ou schema"
-              />
-              <select
-                className="topbar-select"
-                value={auth.session.client.id}
-                onChange={(event) => {
-                  setClientSearch("");
-                  switchClient(event.target.value);
-                }}
-                title="Ambiente"
-              >
-                {!currentEnvironmentVisible && (
-                  <option value={auth.session.client.id}>{auth.session.client.name}</option>
-                )}
-                {environmentClients.map((client) => (
-                  <option key={client.id} value={client.id}>{client.name}</option>
-                ))}
-              </select>
-            </div>
+            <EnvironmentCombobox
+              clients={auth.session.clients}
+              currentClient={auth.session.client}
+              onSelect={switchClient}
+            />
           )}
 
           <button className="btn ghost sm" style={{ marginRight: 10 }} onClick={cycleTheme} title="Alternar tema">
@@ -405,6 +374,104 @@ const App = () => {
         <CredentialsModal token={auth.token} onSaved={(status) => setCredentialStatus({ loading: false, checkedClientId: currentClient?.id, ...status })}/>
       )}
 
+    </div>
+  );
+};
+
+const EnvironmentCombobox = ({ clients, currentClient, onSelect }) => {
+  const [query, setQuery] = useState(currentClient?.name || "");
+  const [open, setOpen] = useState(false);
+  const blurTimer = useRef(null);
+
+  useEffect(() => {
+    setQuery(currentClient?.name || "");
+  }, [currentClient?.id, currentClient?.name]);
+
+  const normalized = query.trim().toLowerCase();
+  const filteredClients = clients.filter((client) => {
+    if (!normalized || query === currentClient?.name) return true;
+    return [client.name, client.slug, client.schemaName]
+      .filter(Boolean)
+      .some((value) => String(value).toLowerCase().includes(normalized));
+  });
+
+  const choose = (client) => {
+    if (!client) return;
+    setQuery(client.name);
+    setOpen(false);
+    if (String(client.id) !== String(currentClient?.id)) {
+      onSelect(client.id);
+    }
+  };
+
+  const onBlur = () => {
+    blurTimer.current = window.setTimeout(() => {
+      setOpen(false);
+      setQuery(currentClient?.name || "");
+    }, 140);
+  };
+
+  const onFocus = () => {
+    if (blurTimer.current) window.clearTimeout(blurTimer.current);
+    setOpen(true);
+  };
+
+  return (
+    <div className="environment-combobox">
+      <input
+        value={query}
+        onFocus={onFocus}
+        onBlur={onBlur}
+        onChange={(event) => {
+          setQuery(event.target.value);
+          setOpen(true);
+        }}
+        onKeyDown={(event) => {
+          if (event.key === "Enter") {
+            event.preventDefault();
+            choose(filteredClients[0]);
+          }
+          if (event.key === "Escape") {
+            setOpen(false);
+            setQuery(currentClient?.name || "");
+          }
+        }}
+        placeholder="Ambiente"
+        title="Digite para buscar por cliente, slug ou schema"
+        role="combobox"
+        aria-expanded={open}
+        aria-label="Ambiente"
+      />
+      <button
+        type="button"
+        className="environment-combobox-toggle"
+        onMouseDown={(event) => event.preventDefault()}
+        onClick={() => setOpen((value) => !value)}
+        aria-label="Abrir ambientes"
+      >
+        <Icon name="chevron-right" size={12}/>
+      </button>
+      {open && (
+        <div className="environment-options" role="listbox">
+          {filteredClients.map((client) => (
+            <button
+              key={client.id}
+              type="button"
+              className={`environment-option ${String(client.id) === String(currentClient?.id) ? "active" : ""}`}
+              onMouseDown={(event) => event.preventDefault()}
+              onClick={() => choose(client)}
+              role="option"
+              aria-selected={String(client.id) === String(currentClient?.id)}
+            >
+              <span>{client.name}</span>
+              <small>{client.schemaName || client.slug}</small>
+            </button>
+          ))}
+          {filteredClients.length === 0 && (
+            <div className="environment-empty">Nenhum ambiente encontrado</div>
+          )}
+        </div>
+      )}
     </div>
   );
 };
