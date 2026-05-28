@@ -12,7 +12,7 @@ import {
 } from "../components";
 
 // Detalhe do veiculo - Norte Telemetria
-export const VehicleDetail = ({ data, plate, onBack, onGoToVehicle }) => {
+export const VehicleDetail = ({ data, plate, token, onBack, onGoToVehicle }) => {
   const D = data || EMPTY_DATA;
   const v = D.getVehicle(plate);
   const n = (value) => Number(value) || 0;
@@ -24,7 +24,10 @@ export const VehicleDetail = ({ data, plate, onBack, onGoToVehicle }) => {
   React.useEffect(() => {
     setPositions(null);
     let cancelled = false;
-    fetch(`${API_BASE}/api/vehicles/${encodeURIComponent(plate)}/positions?hours=24`, { cache: "no-store" })
+    fetch(`${API_BASE}/api/vehicles/${encodeURIComponent(plate)}/positions?hours=24`, {
+      cache: "no-store",
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    })
       .then((response) => response.ok ? response.json() : [])
       .then((rows) => {
         if (!cancelled) setPositions(Array.isArray(rows) ? rows : []);
@@ -35,7 +38,7 @@ export const VehicleDetail = ({ data, plate, onBack, onGoToVehicle }) => {
     return () => {
       cancelled = true;
     };
-  }, [plate]);
+  }, [plate, token]);
 
   // Init mini map showing route
   React.useEffect(() => {

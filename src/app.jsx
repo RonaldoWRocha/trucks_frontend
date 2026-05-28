@@ -235,7 +235,7 @@ const App = () => {
       body = <Vehicles data={D} onGoToVehicle={goVehicle}/>;
       break;
     case "vehicle":
-      body = <VehicleDetail data={D} plate={route.plate} onBack={onBack} onGoToVehicle={goVehicle}/>;
+      body = <VehicleDetail data={D} plate={route.plate} token={auth.token} onBack={onBack} onGoToVehicle={goVehicle}/>;
       break;
     case "alerts":
       body = <Alerts data={D} onGoToVehicle={goVehicle} initialFilters={route.params}/>;
