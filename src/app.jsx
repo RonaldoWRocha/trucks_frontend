@@ -215,6 +215,11 @@ const App = () => {
   const currentClient = auth.session?.client;
   const userInitial = (currentUser?.name || currentUser?.email || "N").trim().charAt(0).toUpperCase();
   const roleLabel = currentUser?.isPlatformAdmin ? "Admin da plataforma" : roleName(currentClient?.role);
+  const shouldForceCredentials =
+    !currentUser?.isPlatformAdmin &&
+    !["owner", "admin"].includes(currentClient?.role) &&
+    !credentialStatus.loading &&
+    !credentialStatus.configured;
 
   const onNavigate = (screen, params) => go(screen, params ? { params } : {});
 
@@ -370,7 +375,7 @@ const App = () => {
         </div>
       </main>
 
-      {!auth.session?.user?.isPlatformAdmin && !credentialStatus.loading && !credentialStatus.configured && (
+      {shouldForceCredentials && (
         <CredentialsModal token={auth.token} onSaved={(status) => setCredentialStatus({ loading: false, ...status })}/>
       )}
 
