@@ -10,7 +10,6 @@ import { Reports } from "./screens/reports";
 import { VehicleDetail } from "./screens/vehicle-detail";
 import { Vehicles } from "./screens/vehicles";
 import { Icon, Plate } from "./components";
-import norteLogo from "../assets/norte-logo.jpeg";
 
 // Norte Telemetria - App shell, router, sidebar, topbar
 
@@ -413,7 +412,7 @@ const LoginScreen = ({ needsSetup, onSuccess }) => {
     <div className="auth-shell">
       <form className="auth-panel" onSubmit={submit}>
         <div className="auth-brand-lockup">
-          <img className="auth-brand-logo" src={norteLogo.src} alt="Norte - Gestão de Frota Inteligente"/>
+          <img className="auth-brand-logo" src="/norte-logo.jpeg" alt="Norte - Gestão de Frota Inteligente"/>
         </div>
         <div>
           <h1>{mode === "setup" ? "Primeiro acesso" : "Entrar"}</h1>

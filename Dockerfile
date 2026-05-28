@@ -32,6 +32,7 @@ RUN npm ci --production
 
 COPY --from=builder /usr/src/app/.next .next
 COPY --from=builder /usr/src/app/next.config.mjs ./next.config.mjs
+COPY --from=builder /usr/src/app/public ./public
 
 # Expose Next.js default port
 EXPOSE 3000
