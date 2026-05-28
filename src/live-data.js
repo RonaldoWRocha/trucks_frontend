@@ -126,6 +126,9 @@ function buildData({ vehicles, alerts, dashboard, integration, reportSummary }) 
     count: Number(item.count || 0),
     sev: item.sev || "info",
   }));
+  const alertStats = dashboard.alerts || {};
+  const total24h = Number(alertStats.total24h ?? alertStats.total_24h ?? 0);
+  const critical24h = Number(alertStats.critical24h ?? alertStats.critical_24h ?? 0);
 
   const data = {
     FLEET: fleet,
@@ -134,8 +137,8 @@ function buildData({ vehicles, alerts, dashboard, integration, reportSummary }) 
     PAYLOAD_ERRORS: payloadErrors,
     RECENT_LOG: buildRecentLog(integration),
     ALERT_STATS: {
-      total24h: Number(dashboard.alerts?.total24h || 0),
-      critical24h: Number(dashboard.alerts?.critical24h || 0),
+      total24h,
+      critical24h,
     },
     TOP_EVENT_TYPES: topEventTypes,
     DAILY: daily,
