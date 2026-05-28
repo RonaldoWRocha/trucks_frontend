@@ -53,7 +53,7 @@ const App = () => {
       return { loading: true, token: "", session: null, needsSetup: false };
     }
   });
-  const [credentialStatus, setCredentialStatus] = useState({ loading: false, configured: true, credential: null });
+  const [credentialStatus, setCredentialStatus] = useState({ loading: true, checkedClientId: null, configured: true, credential: null });
   const [dataRefreshKey, setDataRefreshKey] = useState(0);
   const { data: D, loading, error } = useTelemetryData(auth.token, auth.session?.client?.id, dataRefreshKey);
   const [route, setRouteState] = useState(readRoute());
@@ -131,12 +131,12 @@ const App = () => {
     let cancelled = false;
     async function loadCredentials() {
       if (!auth.token || !auth.session) return;
-      setCredentialStatus((current) => ({ ...current, loading: true }));
+      setCredentialStatus((current) => ({ ...current, loading: true, checkedClientId: null }));
       try {
         const status = await apiJson("/api/integration/credentials", { token: auth.token });
-        if (!cancelled) setCredentialStatus({ loading: false, ...status });
+        if (!cancelled) setCredentialStatus({ loading: false, checkedClientId: auth.session.client.id, ...status });
       } catch (e) {
-        if (!cancelled) setCredentialStatus({ loading: false, configured: true, credential: null });
+        if (!cancelled) setCredentialStatus({ loading: false, checkedClientId: auth.session.client.id, configured: true, credential: null });
       }
     }
     loadCredentials();
@@ -181,7 +181,7 @@ const App = () => {
         ...current,
         session: { user: next.user, client: next.client, clients: next.clients },
       }));
-      setCredentialStatus({ loading: false, configured: true, credential: null });
+      setCredentialStatus({ loading: true, checkedClientId: null, configured: true, credential: null });
       setDataRefreshKey((current) => current + 1);
     } catch (e) {
       console.error(e);
@@ -219,6 +219,7 @@ const App = () => {
     !currentUser?.isPlatformAdmin &&
     !["owner", "admin"].includes(currentClient?.role) &&
     !credentialStatus.loading &&
+    credentialStatus.checkedClientId === currentClient?.id &&
     !credentialStatus.configured;
 
   const onNavigate = (screen, params) => go(screen, params ? { params } : {});
@@ -255,7 +256,7 @@ const App = () => {
           setDensity={persistDensity}
           token={auth.token}
           credentialStatus={credentialStatus}
-          onCredentialsSaved={(status) => setCredentialStatus({ loading: false, ...status })}
+          onCredentialsSaved={(status) => setCredentialStatus({ loading: false, checkedClientId: currentClient?.id, ...status })}
           isPlatformAdmin={Boolean(auth.session?.user?.isPlatformAdmin)}
         />
       );
@@ -376,7 +377,7 @@ const App = () => {
       </main>
 
       {shouldForceCredentials && (
-        <CredentialsModal token={auth.token} onSaved={(status) => setCredentialStatus({ loading: false, ...status })}/>
+        <CredentialsModal token={auth.token} onSaved={(status) => setCredentialStatus({ loading: false, checkedClientId: currentClient?.id, ...status })}/>
       )}
 
     </div>
@@ -410,6 +411,42 @@ const LoginScreen = ({ needsSetup, onSuccess }) => {
     } finally {
       setSaving(false);
     }
+  };
+
+  const updateUserRole = async (user) => {
+    const role = user.pendingRole || (user.isPlatformAdmin ? "platform_admin" : user.role || "viewer");
+    const clientId = user.pendingClientId || user.clientId || clients[0]?.id;
+    setError("");
+    setMessage("");
+    try {
+      await apiJson(`/api/users/${user.id}/role`, {
+        method: "PATCH",
+        token,
+        body: { role, clientId },
+      });
+      setMessage("Perfil atualizado.");
+      await load();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Não foi possível atualizar o perfil.");
+    }
+  };
+
+  const deleteUser = async (user) => {
+    const ok = window.confirm(`Excluir o usuário ${user.name}?`);
+    if (!ok) return;
+    setError("");
+    setMessage("");
+    try {
+      await apiJson(`/api/users/${user.id}`, { method: "DELETE", token });
+      setMessage("Usuário excluído.");
+      await load();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Não foi possível excluir o usuário.");
+    }
+  };
+
+  const patchUserRow = (index, patch) => {
+    setUsers((current) => current.map((user, i) => (i === index ? { ...user, ...patch } : user)));
   };
 
   const field = (key) => ({
@@ -1086,6 +1123,7 @@ const UsersSettings = ({ token, onBack }) => {
               <th>Ambiente</th>
               <th>Perfil</th>
               <th>Status</th>
+              <th style={{textAlign: "right"}}>Ações</th>
             </tr>
           </thead>
           <tbody>
@@ -1093,13 +1131,45 @@ const UsersSettings = ({ token, onBack }) => {
               <tr key={`${user.id}-${user.clientId || index}`}>
                 <td>{user.name}</td>
                 <td className="num muted">{user.email}</td>
-                <td>{user.clientName || (user.isPlatformAdmin ? "Todos" : "-")}</td>
-                <td className="num">{user.isPlatformAdmin ? "platform_admin" : user.role}</td>
+                <td>
+                  {(user.pendingRole || (user.isPlatformAdmin ? "platform_admin" : user.role)) === "platform_admin" ? (
+                    <span className="muted">Todos</span>
+                  ) : (
+                    <select
+                      className="form-select table-select"
+                      value={user.pendingClientId || user.clientId || ""}
+                      onChange={(event) => patchUserRow(index, { pendingClientId: event.target.value })}
+                    >
+                      {clients.map((client) => (
+                        <option key={client.id} value={client.id}>{client.name}</option>
+                      ))}
+                    </select>
+                  )}
+                </td>
+                <td>
+                  <select
+                    className="form-select table-select"
+                    value={user.pendingRole || (user.isPlatformAdmin ? "platform_admin" : user.role || "viewer")}
+                    onChange={(event) => patchUserRow(index, { pendingRole: event.target.value })}
+                  >
+                    <option value="platform_admin">Admin da plataforma</option>
+                    <option value="viewer">Visualizador</option>
+                    <option value="operator">Operador</option>
+                    <option value="admin">Admin do ambiente</option>
+                    <option value="owner">Dono do ambiente</option>
+                  </select>
+                </td>
                 <td>{user.enabled ? <span className="badge ok">Ativo</span> : <span className="badge">Inativo</span>}</td>
+                <td style={{textAlign: "right"}}>
+                  <div className="row" style={{gap: 6, justifyContent: "flex-end"}}>
+                    <button className="btn sm" type="button" onClick={() => updateUserRole(user)}>Salvar</button>
+                    <button className="btn ghost sm danger" type="button" onClick={() => deleteUser(user)}>Excluir</button>
+                  </div>
+                </td>
               </tr>
             ))}
             {!loading && users.length === 0 && (
-              <tr><td colSpan={5} className="muted">Nenhum usuário cadastrado.</td></tr>
+              <tr><td colSpan={6} className="muted">Nenhum usuário cadastrado.</td></tr>
             )}
           </tbody>
         </table>

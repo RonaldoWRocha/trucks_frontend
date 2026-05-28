@@ -592,6 +592,11 @@ input, select, textarea { font: inherit; color: inherit; }
 .btn.primary:hover { background: var(--brand-navy-2); border-color: var(--brand-navy-2); }
 .btn.ghost { border-color: transparent; background: transparent; color: var(--text-2); }
 .btn.ghost:hover { background: var(--hover); color: var(--text); }
+.btn.danger { color: var(--crit); }
+.btn.danger:hover {
+  color: var(--crit);
+  background: color-mix(in oklab, var(--crit) 10%, transparent);
+}
 .btn.sm { height: 26px; padding: 0 8px; font-size: 12px; }
 
 /* ── Table ──────────────────────────────────────── */
@@ -1176,6 +1181,11 @@ tr.row-ok td:first-child { box-shadow: inset 3px 0 0 var(--ok); }
   width: 190px;
   height: 30px;
   margin-right: 10px;
+  font-size: 12px;
+}
+.table-select {
+  width: 180px;
+  height: 30px;
   font-size: 12px;
 }
 .form-field input:focus {
