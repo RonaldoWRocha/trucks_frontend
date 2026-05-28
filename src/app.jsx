@@ -272,23 +272,7 @@ const App = () => {
       <aside className="sidebar">
         <div className="sidebar-brand">
           <div className="brand-mark" title="Norte — Gestão de Frota Inteligente">
-            <svg viewBox="0 0 28 28" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-              {/* N body: thick road-like stroke */}
-              <path d="M5.5 23 L5.5 8.5 L18 21.5 L18 11.5"
-                    fill="none" stroke="#141936"
-                    strokeWidth="3.8" strokeLinecap="round" strokeLinejoin="round"/>
-              {/* dashed road centerline along the N's left leg */}
-              <path d="M5.5 21 L5.5 10"
-                    fill="none" stroke="#ffffff"
-                    strokeWidth="0.7" strokeDasharray="1.3 1.3" strokeLinecap="round"/>
-              {/* arrow head tip — light blue */}
-              <path d="M18 11.5 L22.5 6.5"
-                    fill="none" stroke="#4f7fab"
-                    strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
-              <path d="M22.5 6.5 L19.5 6.5 L22.5 6.5 L22.5 9.5"
-                    fill="none" stroke="#4f7fab"
-                    strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
+            <img className="brand-icon" src="/icon.svg" alt="" aria-hidden="true" />
           </div>
           <div className="brand-name">
             Norte
