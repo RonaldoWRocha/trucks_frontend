@@ -1298,9 +1298,9 @@ tr.row-ok td:first-child { box-shadow: inset 3px 0 0 var(--ok); }
 .form-field {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 4px;
   font-size: 12px;
-  line-height: 1.15;
+  line-height: 1.2;
   color: var(--text-2);
 }
 .form-field input,
@@ -1313,6 +1313,7 @@ tr.row-ok td:first-child { box-shadow: inset 3px 0 0 var(--ok); }
   color: var(--text);
   padding: 0 10px;
   font: inherit;
+  transition: border-color 120ms ease, background 120ms ease, box-shadow 120ms ease;
 }
 .form-field textarea {
   height: auto;
@@ -1364,10 +1365,48 @@ tr.row-ok td:first-child { box-shadow: inset 3px 0 0 var(--ok); }
 .form-grid-2 {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 10px;
+  gap: 14px 10px;
 }
 .driver-form {
-  gap: 14px;
+  display: grid;
+  gap: 16px;
+  padding: 20px;
+}
+.driver-form .section-head {
+  margin-bottom: 0;
+}
+.driver-form .form-field {
+  font-weight: 500;
+}
+.driver-form .form-field input,
+.driver-form .form-field select,
+.driver-form .form-field textarea {
+  background: color-mix(in oklab, var(--surface-2) 86%, var(--surface));
+}
+.driver-form .form-field input:hover,
+.driver-form .form-field select:hover,
+.driver-form .form-field textarea:hover {
+  border-color: var(--border-strong);
+  background: var(--surface-2);
+}
+.driver-form .btn.primary {
+  width: 100%;
+  height: 40px;
+  justify-content: center;
+  margin-top: 2px;
+  border-color: var(--brand-blue);
+  background: linear-gradient(180deg, var(--brand-blue), var(--accent-hover));
+  box-shadow: 0 8px 18px color-mix(in oklab, var(--brand-blue) 24%, transparent);
+  font-weight: 700;
+}
+.driver-form .btn.primary:hover {
+  border-color: var(--accent-hover);
+  background: linear-gradient(180deg, var(--brand-blue-2), var(--brand-blue));
+}
+.driver-form .btn.primary:disabled {
+  opacity: 0.72;
+  cursor: wait;
+  box-shadow: none;
 }
 .form-success {
   border: 1px solid color-mix(in oklab, var(--ok) 35%, var(--border));
