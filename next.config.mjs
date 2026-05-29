@@ -3,6 +3,7 @@ const API_HOST =
   process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || "http://host.docker.internal:80";
 
 const nextConfig = {
+  allowedDevOrigins: ["127.0.0.1", "localhost"],
   async rewrites() {
     return [
       {

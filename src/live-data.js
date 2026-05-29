@@ -216,13 +216,16 @@ function mapJob(job) {
   return {
     id: job.id,
     label: job.label,
+    requestType: job.requestType,
     lastRun: job.lastSuccessAt ? timeAgo(new Date(job.lastSuccessAt)) : "sem execucao",
     status,
+    rawStatus: job.status || "pending",
     read: Number(job.inserted || 0) + Number(job.ignored || 0),
     inserted: Number(job.inserted || 0),
     ignored: Number(job.ignored || 0),
     errors: job.status === "error" ? 1 : 0,
     schedule: `a cada ${Math.round(Number(job.intervalSeconds || 0) / 60) || 1} min`,
+    nextRunAt: job.nextRunAt,
   };
 }
 

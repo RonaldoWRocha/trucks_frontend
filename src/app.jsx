@@ -244,7 +244,7 @@ const App = () => {
       body = <Reports data={D} onGoToVehicle={goVehicle}/>;
       break;
     case "integration":
-      body = <Integration data={D}/>;
+      body = <Integration data={D} token={auth.token} onJobForced={() => setDataRefreshKey((current) => current + 1)}/>;
       break;
     case "settings":
       body = (
@@ -477,7 +477,7 @@ const LoginScreen = ({ needsSetup, onSuccess }) => {
       });
       onSuccess(result);
     } catch (e) {
-      setError("Nao foi possivel acessar. Confira os dados informados.");
+      setError(e instanceof Error ? e.message : "Nao foi possivel acessar. Confira os dados informados.");
     } finally {
       setSaving(false);
     }

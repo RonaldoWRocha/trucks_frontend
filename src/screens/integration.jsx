@@ -1,15 +1,36 @@
-import { EMPTY_DATA } from "../live-data";
+import { useState } from "react";
+import { apiJson, EMPTY_DATA } from "../live-data";
 import { Hint, Icon, KPI, Plate, fmtNum } from "../components";
 
 // Saude da Integracao - Norte Telemetria
-export const Integration = ({ data }) => {
+export const Integration = ({ data, token, onJobForced }) => {
   const D = data || EMPTY_DATA;
+  const [forcingJob, setForcingJob] = useState("");
+  const [forceMessage, setForceMessage] = useState("");
 
   const statusBadge = (s) => {
     if (s === "ok") return <span className="badge ok"><span className="dot"/>Sucesso</span>;
     if (s === "warn") return <span className="badge warn"><span className="dot"/>Atenção</span>;
     if (s === "err") return <span className="badge crit"><span className="dot"/>Erro</span>;
     return <span className="badge">Pendente</span>;
+  };
+
+  const forceJob = async (job) => {
+    if (!token || forcingJob) return;
+    setForcingJob(job.id);
+    setForceMessage("");
+    try {
+      await apiJson(`/api/integration/jobs/${encodeURIComponent(job.id)}/force`, {
+        method: "POST",
+        token,
+      });
+      setForceMessage(`${job.label} enviado para execucao.`);
+      onJobForced?.();
+    } catch (error) {
+      setForceMessage(error instanceof Error ? error.message : "Falha ao forcar job.");
+    } finally {
+      setForcingJob("");
+    }
   };
 
   const totalRead = D.JOBS.reduce((s, j) => s + j.read, 0);
@@ -44,7 +65,10 @@ export const Integration = ({ data }) => {
       <div className="card card-flush" style={{marginBottom: 16}}>
         <div className="card-header">
           <h3>Jobs de sincronização <Hint text="Lista das rotinas que buscam payloads na Trucks e importam para o banco do cliente."/></h3>
-          <span className="meta">4 jobs · scheduler ativo</span>
+          <div className="row" style={{gap: 10}}>
+            {forceMessage && <span className="meta">{forceMessage}</span>}
+            <span className="meta">{D.JOBS.length} jobs · scheduler ativo</span>
+          </div>
         </div>
         <table className="tbl">
           <thead>
@@ -57,7 +81,7 @@ export const Integration = ({ data }) => {
               <th style={{textAlign: "right"}}>Inseridos</th>
               <th style={{textAlign: "right"}}>Ignorados</th>
               <th style={{textAlign: "right"}}>Erros</th>
-              <th></th>
+              <th style={{textAlign: "right"}}>Acao</th>
             </tr>
           </thead>
           <tbody>
@@ -71,7 +95,18 @@ export const Integration = ({ data }) => {
                 <td className="num" style={{textAlign: "right"}}>{fmtNum(j.inserted)}</td>
                 <td className="num" style={{textAlign: "right"}}>{fmtNum(j.ignored)}</td>
                 <td className="num" style={{textAlign: "right", color: j.errors > 0 ? "var(--crit)" : "inherit"}}>{j.errors}</td>
-                <td></td>
+                <td style={{textAlign: "right"}}>
+                  <button
+                    className="btn ghost sm"
+                    type="button"
+                    disabled={!token || Boolean(forcingJob)}
+                    onClick={() => forceJob(j)}
+                    title="Forcar execucao agora"
+                  >
+                    <Icon name={forcingJob === j.id ? "refresh" : "play"} size={12}/>
+                    {forcingJob === j.id ? "Enviando" : "Forcar"}
+                  </button>
+                </td>
               </tr>
             ))}
           </tbody>
