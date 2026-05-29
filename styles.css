@@ -1408,39 +1408,30 @@ tr.row-ok td:first-child { box-shadow: inset 3px 0 0 var(--ok); }
   cursor: wait;
   box-shadow: none;
 }
-.gamification-layout {
-  display: grid;
-  grid-template-columns: 360px minmax(0, 1fr);
-  gap: 16px;
-  align-items: start;
-}
-.gamification-drivers {
+.analysis-driver-list-card {
   overflow: hidden;
 }
-.driver-rank-list {
-  max-height: calc(100vh - 220px);
-  overflow: auto;
+.analysis-driver-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1px;
+  background: var(--divider);
 }
-.driver-rank-row {
+.analysis-driver-card {
   width: 100%;
-  min-height: 58px;
+  min-height: 74px;
   display: grid;
   grid-template-columns: 28px minmax(0, 1fr) auto;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   border: 0;
-  border-bottom: 1px solid var(--divider);
   background: var(--surface);
   color: var(--text);
-  padding: 10px 12px;
+  padding: 14px;
   text-align: left;
 }
-.driver-rank-row:hover,
-.driver-rank-row.active {
+.analysis-driver-card:hover {
   background: var(--surface-2);
-}
-.driver-rank-row.active {
-  box-shadow: inset 3px 0 0 var(--brand-blue);
 }
 .rank-pos {
   width: 24px;
@@ -1485,15 +1476,8 @@ tr.row-ok td:first-child { box-shadow: inset 3px 0 0 var(--ok); }
   font-size: 12.5px;
   text-align: center;
 }
-.gamification-report {
-  min-width: 0;
+.analysis-period-modal {
   display: grid;
-  gap: 16px;
-}
-.period-panel {
-  display: grid;
-  grid-template-columns: minmax(220px, 1fr) auto;
-  align-items: end;
   gap: 16px;
 }
 .selected-driver {
@@ -1507,15 +1491,24 @@ tr.row-ok td:first-child { box-shadow: inset 3px 0 0 var(--ok); }
 .selected-driver svg {
   color: var(--brand-blue);
 }
-.period-fields {
-  display: grid;
-  grid-template-columns: 150px 150px 132px;
-  gap: 10px;
-  align-items: end;
-}
-.period-fields .btn {
-  height: 38px;
+.analysis-period-modal .btn.primary {
+  height: 40px;
   justify-content: center;
+}
+.analysis-result-view {
+  display: grid;
+  gap: 16px;
+}
+.analysis-result-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+}
+.analysis-result-head h1 {
+  margin: 10px 0 0;
+  font-size: 20px;
+  letter-spacing: 0;
 }
 .gamification-kpis {
   margin: 0;
@@ -1530,13 +1523,13 @@ tr.row-ok td:first-child { box-shadow: inset 3px 0 0 var(--ok); }
   min-width: 1260px;
 }
 .gamification-table thead th {
-  background: #f4df2f;
-  color: #171717;
+  background: var(--surface-2);
+  color: var(--text-2);
   font-weight: 700;
 }
 :root[data-theme="dark"] .gamification-table thead th {
-  background: #e2c928;
-  color: #101010;
+  background: var(--surface-2);
+  color: var(--text-2);
 }
 .score-pill {
   display: inline-grid;
@@ -1739,17 +1732,44 @@ tr.row-ok td:first-child { box-shadow: inset 3px 0 0 var(--ok); }
   .grid.cols-4 { grid-template-columns: repeat(2, 1fr); }
   .grid.cols-5 { grid-template-columns: repeat(2, 1fr); }
   .grid.cols-6 { grid-template-columns: repeat(3, 1fr); }
-  .gamification-layout,
-  .period-panel {
-    grid-template-columns: 1fr;
-  }
-  .driver-rank-list {
-    max-height: 360px;
-  }
-  .period-fields {
-    grid-template-columns: 1fr;
+  .analysis-result-head {
+    align-items: flex-start;
+    flex-direction: column;
   }
   .evidence-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+@media print {
+  .sidebar,
+  .topbar,
+  .no-print {
+    display: none !important;
+  }
+  .app-shell {
+    display: block;
+    height: auto;
+    min-height: 0;
+  }
+  .main,
+  .view {
+    display: block;
+    overflow: visible;
+    padding: 0;
+  }
+  .analysis-result-view {
+    gap: 12px;
+  }
+  .card,
+  .kpi {
+    break-inside: avoid;
+  }
+  .wide-table-scroll {
+    overflow: visible;
+  }
+  .gamification-table {
+    min-width: 0;
+    font-size: 10px;
   }
 }

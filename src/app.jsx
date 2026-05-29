@@ -242,7 +242,7 @@ const App = () => {
       body = <Drivers token={auth.token}/>;
       break;
     case "gamification":
-      body = <Gamification token={auth.token}/>;
+      body = <Gamification token={auth.token} initialParams={route.params}/>;
       break;
     case "vehicle":
       body = <VehicleDetail data={D} plate={route.plate} token={auth.token} onBack={onBack} onGoToVehicle={goVehicle}/>;
