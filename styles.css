@@ -1298,8 +1298,9 @@ tr.row-ok td:first-child { box-shadow: inset 3px 0 0 var(--ok); }
 .form-field {
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 2px;
   font-size: 12px;
+  line-height: 1.15;
   color: var(--text-2);
 }
 .form-field input,
@@ -1366,7 +1367,7 @@ tr.row-ok td:first-child { box-shadow: inset 3px 0 0 var(--ok); }
   gap: 10px;
 }
 .driver-form {
-  gap: 10px;
+  gap: 14px;
 }
 .form-success {
   border: 1px solid color-mix(in oklab, var(--ok) 35%, var(--border));
