@@ -10,6 +10,7 @@ export const Gamification = ({ token }) => {
   const [selected, setSelected] = React.useState(null);
   const [period, setPeriod] = React.useState(() => defaultPeriod());
   const [report, setReport] = React.useState(null);
+  const [evidenceRow, setEvidenceRow] = React.useState(null);
   const [loadingDrivers, setLoadingDrivers] = React.useState(true);
   const [loadingReport, setLoadingReport] = React.useState(false);
   const [error, setError] = React.useState("");
@@ -47,7 +48,9 @@ export const Gamification = ({ token }) => {
     try {
       const params = new URLSearchParams({ start: period.start, end: period.end });
       const path = `/api/gamification/drivers/${encodeURIComponent(selected.name)}/report?${params.toString()}`;
-      setReport(await apiJson(path, { token }));
+      const nextReport = await apiJson(path, { token });
+      setReport(nextReport);
+      setEvidenceRow(nextReport.rows?.[0] || null);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Nao foi possivel gamificar esse periodo.");
     } finally {
@@ -61,8 +64,8 @@ export const Gamification = ({ token }) => {
     <div className="view gamification-view">
       <div className="page-head">
         <div>
-          <h1>Gamificacao</h1>
-          <div className="sub">Notas de conducao por motorista, periodo e indicador operacional</div>
+          <h1>Análises</h1>
+          <div className="sub">Análise gamificada de condução com evidências por indicador</div>
         </div>
       </div>
 
@@ -109,7 +112,7 @@ export const Gamification = ({ token }) => {
         <section className="gamification-report">
           <form className="card period-panel" onSubmit={loadReport}>
             <div>
-              <div className="section-head"><h2>Periodo de avaliacao</h2></div>
+              <div className="section-head"><h2>Análise gamificada</h2></div>
               <div className="selected-driver">
                 <Icon name="user"/>
                 <span>{selected?.name || "Selecione um motorista"}</span>
@@ -120,7 +123,7 @@ export const Gamification = ({ token }) => {
               <label className="form-field">Data fim<input type="date" value={period.end} onChange={(event) => setPeriod((current) => ({ ...current, end: event.target.value }))}/></label>
               <button className="btn primary" type="submit" disabled={!selected || loadingReport}>
                 <Icon name="chart"/>
-                {loadingReport ? "Calculando..." : "Gamificar"}
+                {loadingReport ? "Analisando..." : "Gerar análise"}
               </button>
             </div>
           </form>
@@ -137,9 +140,10 @@ export const Gamification = ({ token }) => {
 
               <div className="card card-flush report-table-card">
                 <div className="card-header">
-                  <h3>Relatorio de viagens</h3>
+                  <h3>Resultado da análise</h3>
                   <span className="meta">{report.rows.length} registro(s)</span>
                 </div>
+                {evidenceRow && <EvidencePanel row={evidenceRow}/>}
                 <div className="wide-table-scroll">
                   <table className="tbl gamification-table">
                     <thead>
@@ -156,11 +160,15 @@ export const Gamification = ({ token }) => {
                         <th>Velocidade</th>
                         <th>Consumo medio</th>
                         <th>RPM medio</th>
+                        <th>Provas</th>
                       </tr>
                     </thead>
                     <tbody>
                       {report.rows.map((row, index) => (
-                        <tr key={`${row.date}-${row.plate}-${index}`}>
+                        <tr
+                          key={`${row.date}-${row.plate}-${index}`}
+                          className={evidenceRow === row ? "selected-analysis-row" : ""}
+                        >
                           <td className="num">{row.startAt}</td>
                           <td className="num">{row.endAt}</td>
                           <td className="num">{row.plate || "-"}</td>
@@ -173,10 +181,15 @@ export const Gamification = ({ token }) => {
                           <td><ScorePill value={row.speedScore}/></td>
                           <td className="num">{fmtNum(row.avgFuel || 0, {maximumFractionDigits: 2})}</td>
                           <td className="num">{fmtNum(row.avgRpm || 0, {maximumFractionDigits: 0})}</td>
+                          <td>
+                            <button className="btn ghost sm" type="button" onClick={() => setEvidenceRow(row)}>
+                              Ver provas
+                            </button>
+                          </td>
                         </tr>
                       ))}
                       {report.rows.length === 0 && (
-                        <tr><td colSpan={12} className="muted" style={{textAlign: "center", padding: 36}}>Nenhum registro encontrado nesse periodo.</td></tr>
+                        <tr><td colSpan={13} className="muted" style={{textAlign: "center", padding: 36}}>Nenhum registro encontrado nesse periodo.</td></tr>
                       )}
                     </tbody>
                   </table>
@@ -195,6 +208,58 @@ const ScorePill = ({ value }) => {
   const cls = score >= 90 ? "great" : score >= 75 ? "good" : score >= 60 ? "warn" : "bad";
   return <span className={`score-pill ${cls}`}>{score}</span>;
 };
+
+const EvidencePanel = ({ row }) => (
+  <div className="evidence-panel">
+    <div className="evidence-head">
+      <div>
+        <h4>Provas da nota</h4>
+        <span>{row.plate || "-"} · {row.startAt} a {row.endAt}</span>
+      </div>
+      <ScorePill value={row.score}/>
+    </div>
+    <div className="evidence-grid">
+      {(row.evidence || []).map((item) => (
+        <div className="evidence-card" key={item.key}>
+          <div className="row between">
+            <strong>{item.label}</strong>
+            <ScorePill value={item.score}/>
+          </div>
+          <dl>
+            {Object.entries(item.measured || {}).map(([key, value]) => (
+              <React.Fragment key={key}>
+                <dt>{metricLabel(key)}</dt>
+                <dd>{formatMetric(key, value)}</dd>
+              </React.Fragment>
+            ))}
+          </dl>
+          <p>{item.reference}</p>
+          <small>{item.reason}</small>
+        </div>
+      ))}
+    </div>
+  </div>
+);
+
+function metricLabel(key) {
+  const map = {
+    avgRpm: "RPM medio",
+    maxRpm: "RPM maximo",
+    avgFuel: "Consumo medio",
+    avgSpeed: "Velocidade media",
+    maxSpeed: "Velocidade maxima",
+    idlePercent: "Motor parado",
+  };
+  return map[key] || key;
+}
+
+function formatMetric(key, value) {
+  if (key === "avgFuel") return `${fmtNum(Number(value || 0), {maximumFractionDigits: 2})} km/l`;
+  if (key === "idlePercent") return `${fmtNum(Number(value || 0), {maximumFractionDigits: 0})}%`;
+  if (key.toLowerCase().includes("speed")) return `${fmtNum(Number(value || 0), {maximumFractionDigits: 0})} km/h`;
+  if (key.toLowerCase().includes("rpm")) return `${fmtNum(Number(value || 0), {maximumFractionDigits: 0})} rpm`;
+  return fmtNum(Number(value || 0), {maximumFractionDigits: 1});
+}
 
 function defaultPeriod() {
   const end = new Date();

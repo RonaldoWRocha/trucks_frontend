@@ -1527,7 +1527,7 @@ tr.row-ok td:first-child { box-shadow: inset 3px 0 0 var(--ok); }
   overflow: auto;
 }
 .gamification-table {
-  min-width: 1180px;
+  min-width: 1260px;
 }
 .gamification-table thead th {
   background: #f4df2f;
@@ -1570,6 +1570,74 @@ tr.row-ok td:first-child { box-shadow: inset 3px 0 0 var(--ok); }
   color: var(--crit);
   background: var(--crit-bg);
   border-color: var(--crit-border);
+}
+.selected-analysis-row td {
+  background: color-mix(in oklab, var(--brand-blue) 8%, transparent);
+}
+.evidence-panel {
+  border-bottom: 1px solid var(--divider);
+  padding: 14px;
+  background: var(--surface);
+}
+.evidence-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.evidence-head h4 {
+  margin: 0;
+  font-size: 13px;
+}
+.evidence-head span {
+  display: block;
+  margin-top: 2px;
+  color: var(--text-3);
+  font-size: 11.5px;
+}
+.evidence-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+.evidence-card {
+  min-width: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  background: var(--surface-2);
+  padding: 10px;
+}
+.evidence-card strong {
+  font-size: 12px;
+}
+.evidence-card dl {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 4px 10px;
+  margin: 10px 0 0;
+  font-size: 11.5px;
+}
+.evidence-card dt {
+  color: var(--text-3);
+}
+.evidence-card dd {
+  margin: 0;
+  font-family: var(--font-mono);
+  color: var(--text);
+}
+.evidence-card p {
+  margin: 10px 0 0;
+  color: var(--text-2);
+  font-size: 11.5px;
+  line-height: 1.35;
+}
+.evidence-card small {
+  display: block;
+  margin-top: 8px;
+  color: var(--text-3);
+  font-size: 11.5px;
+  line-height: 1.35;
 }
 .form-success {
   border: 1px solid color-mix(in oklab, var(--ok) 35%, var(--border));
@@ -1679,6 +1747,9 @@ tr.row-ok td:first-child { box-shadow: inset 3px 0 0 var(--ok); }
     max-height: 360px;
   }
   .period-fields {
+    grid-template-columns: 1fr;
+  }
+  .evidence-grid {
     grid-template-columns: 1fr;
   }
 }

@@ -20,7 +20,7 @@ const NAV = [
   { id: "map", label: "Mapa", icon: "map", title: "Mapa da frota" },
   { id: "vehicles", label: "Veículos", icon: "truck", title: "Veículos" },
   { id: "drivers", label: "Motoristas", icon: "user", title: "Motoristas" },
-  { id: "gamification", label: "Gamificacao", icon: "award", title: "Gamificacao" },
+  { id: "gamification", label: "Análises", icon: "award", title: "Análises" },
   { id: "alerts", label: "Alertas", icon: "alert", title: "Alertas e ocorrências" },
   { id: "reports", label: "Relatórios", icon: "chart", title: "Relatórios" },
   { id: "integration", label: "Integração", icon: "plug", title: "Saúde da integração" },
