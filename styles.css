@@ -1408,6 +1408,169 @@ tr.row-ok td:first-child { box-shadow: inset 3px 0 0 var(--ok); }
   cursor: wait;
   box-shadow: none;
 }
+.gamification-layout {
+  display: grid;
+  grid-template-columns: 360px minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+.gamification-drivers {
+  overflow: hidden;
+}
+.driver-rank-list {
+  max-height: calc(100vh - 220px);
+  overflow: auto;
+}
+.driver-rank-row {
+  width: 100%;
+  min-height: 58px;
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  border: 0;
+  border-bottom: 1px solid var(--divider);
+  background: var(--surface);
+  color: var(--text);
+  padding: 10px 12px;
+  text-align: left;
+}
+.driver-rank-row:hover,
+.driver-rank-row.active {
+  background: var(--surface-2);
+}
+.driver-rank-row.active {
+  box-shadow: inset 3px 0 0 var(--brand-blue);
+}
+.rank-pos {
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--r);
+  background: var(--accent-soft);
+  color: var(--brand-blue);
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  font-weight: 700;
+}
+.rank-main {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+.rank-main strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12.5px;
+}
+.rank-main small,
+.rank-metric small {
+  color: var(--text-3);
+  font-size: 11px;
+}
+.rank-metric {
+  display: grid;
+  justify-items: end;
+  gap: 1px;
+  font-family: var(--font-mono);
+}
+.rank-metric b {
+  font-size: 12px;
+}
+.empty-state {
+  padding: 24px 14px;
+  color: var(--text-3);
+  font-size: 12.5px;
+  text-align: center;
+}
+.gamification-report {
+  min-width: 0;
+  display: grid;
+  gap: 16px;
+}
+.period-panel {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) auto;
+  align-items: end;
+  gap: 16px;
+}
+.selected-driver {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 32px;
+  color: var(--text);
+  font-weight: 600;
+}
+.selected-driver svg {
+  color: var(--brand-blue);
+}
+.period-fields {
+  display: grid;
+  grid-template-columns: 150px 150px 132px;
+  gap: 10px;
+  align-items: end;
+}
+.period-fields .btn {
+  height: 38px;
+  justify-content: center;
+}
+.gamification-kpis {
+  margin: 0;
+}
+.report-table-card {
+  overflow: hidden;
+}
+.wide-table-scroll {
+  overflow: auto;
+}
+.gamification-table {
+  min-width: 1180px;
+}
+.gamification-table thead th {
+  background: #f4df2f;
+  color: #171717;
+  font-weight: 700;
+}
+:root[data-theme="dark"] .gamification-table thead th {
+  background: #e2c928;
+  color: #101010;
+}
+.score-pill {
+  display: inline-grid;
+  place-items: center;
+  min-width: 38px;
+  height: 24px;
+  padding: 0 8px;
+  border-radius: var(--r);
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 12px;
+}
+.score-pill.great {
+  color: var(--ok);
+  background: var(--ok-bg);
+  border-color: var(--ok-border);
+}
+.score-pill.good {
+  color: var(--info);
+  background: var(--info-bg);
+  border-color: var(--info-border);
+}
+.score-pill.warn {
+  color: var(--warn);
+  background: var(--warn-bg);
+  border-color: var(--warn-border);
+}
+.score-pill.bad {
+  color: var(--crit);
+  background: var(--crit-bg);
+  border-color: var(--crit-border);
+}
 .form-success {
   border: 1px solid color-mix(in oklab, var(--ok) 35%, var(--border));
   background: color-mix(in oklab, var(--ok) 8%, var(--surface));
@@ -1508,4 +1671,14 @@ tr.row-ok td:first-child { box-shadow: inset 3px 0 0 var(--ok); }
   .grid.cols-4 { grid-template-columns: repeat(2, 1fr); }
   .grid.cols-5 { grid-template-columns: repeat(2, 1fr); }
   .grid.cols-6 { grid-template-columns: repeat(3, 1fr); }
+  .gamification-layout,
+  .period-panel {
+    grid-template-columns: 1fr;
+  }
+  .driver-rank-list {
+    max-height: 360px;
+  }
+  .period-fields {
+    grid-template-columns: 1fr;
+  }
 }

@@ -84,6 +84,8 @@ export const Icon = ({ name, size = 16, strokeWidth = 1.6, ...rest }) => {
       return <svg {...common}><path d="M6 19a3 3 0 0 0 12 0M5 17h14l-1.5-3V10a5.5 5.5 0 1 0-11 0v4z"/></svg>;
     case "check":
       return <svg {...common}><path d="m5 12 5 5 9-11"/></svg>;
+    case "award":
+      return <svg {...common}><circle cx="12" cy="8" r="5"/><path d="M8.5 12.5 7 22l5-3 5 3-1.5-9.5"/><path d="m9.5 8 1.6 1.6L14.8 6"/></svg>;
     case "x":
       return <svg {...common}><path d="M6 6l12 12M18 6 6 18"/></svg>;
     case "plus":
