@@ -50,6 +50,8 @@ export const Icon = ({ name, size = 16, strokeWidth = 1.6, ...rest }) => {
       return <svg {...common}><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>;
     case "download":
       return <svg {...common}><path d="M12 4v12M6 12l6 6 6-6M4 20h16"/></svg>;
+    case "upload":
+      return <svg {...common}><path d="M12 20V8M6 14l6-6 6 6M4 20h16"/></svg>;
     case "speedometer":
       return <svg {...common}><path d="M3 13a9 9 0 1 1 18 0"/><path d="M12 13l5-3"/></svg>;
     case "fuel":

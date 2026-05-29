@@ -9,6 +9,7 @@ import { MapScreen } from "./screens/map";
 import { Reports } from "./screens/reports";
 import { VehicleDetail } from "./screens/vehicle-detail";
 import { Vehicles } from "./screens/vehicles";
+import { Drivers } from "./screens/drivers";
 import { Icon, Plate } from "./components";
 
 // Norte Telemetria - App shell, router, sidebar, topbar
@@ -17,6 +18,7 @@ const NAV = [
   { id: "dashboard", label: "Dashboard", icon: "dashboard", title: "Visão geral" },
   { id: "map", label: "Mapa", icon: "map", title: "Mapa da frota" },
   { id: "vehicles", label: "Veículos", icon: "truck", title: "Veículos" },
+  { id: "drivers", label: "Motoristas", icon: "user", title: "Motoristas" },
   { id: "alerts", label: "Alertas", icon: "alert", title: "Alertas e ocorrências" },
   { id: "reports", label: "Relatórios", icon: "chart", title: "Relatórios" },
   { id: "integration", label: "Integração", icon: "plug", title: "Saúde da integração" },
@@ -233,6 +235,9 @@ const App = () => {
       break;
     case "vehicles":
       body = <Vehicles data={D} onGoToVehicle={goVehicle}/>;
+      break;
+    case "drivers":
+      body = <Drivers token={auth.token}/>;
       break;
     case "vehicle":
       body = <VehicleDetail data={D} plate={route.plate} token={auth.token} onBack={onBack} onGoToVehicle={goVehicle}/>;
