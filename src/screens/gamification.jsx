@@ -115,7 +115,7 @@ export const Gamification = ({ token, initialParams = {} }) => {
       <div className="page-head">
         <div>
           <h1>Análises</h1>
-          <div className="sub">Selecione um motorista para gerar uma análise gamificada por período</div>
+          <div className="sub">Selecione um motorista para gerar uma análise de condução por período</div>
         </div>
       </div>
 
@@ -196,7 +196,7 @@ const AnalysisResult = ({ report, selected, evidenceRow, setEvidenceRow, onBack,
             <Icon name="chevron-right" style={{transform: "rotate(180deg)"}}/>
             Motoristas
           </button>
-          <h1>Análise gamificada</h1>
+          <h1>Análise de condução</h1>
           <div className="sub">{selected?.name || report.driver} · {formatDate(report.start)} a {formatDate(report.end)}</div>
         </div>
         <div className="row no-print" style={{gap: 8}}>
