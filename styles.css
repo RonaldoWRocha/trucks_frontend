@@ -1298,7 +1298,7 @@ tr.row-ok td:first-child { box-shadow: inset 3px 0 0 var(--ok); }
 .form-field {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 3px;
   font-size: 12px;
   color: var(--text-2);
 }
